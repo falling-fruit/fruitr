@@ -12,7 +12,7 @@ count_google_cs_results = function(string, language = NULL) {
   query <- list(key = "***REMOVED***", cx = "***REMOVED***", q = string)
   if (!is.empty(language)) {
     if (!(language %in% Google_cs_languages)) {
-      stop("Unsupported language: '", language, "'")
+      warning("Ignored unsupported language (", language, ").")
     } else {
       query <- c(query, lr = paste0("lang_", language))
     }
