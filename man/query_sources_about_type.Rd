@@ -8,7 +8,7 @@ query_sources_about_type(ff_type, sources = c("eol", "col", "inaturalist",
   "wikipedia", "wikicommons", "wikispecies"))
 }
 \description{
-Query Sources about Falling Fruit (FF) Type
+TODO: Seach by scientific synonyms if no results found.
 }
 \examples{
 ff_types <- get_ff_types(urls = TRUE)

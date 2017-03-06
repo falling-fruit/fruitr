@@ -4,9 +4,9 @@
 \alias{normalize_language}
 \title{Normalize Language}
 \usage{
-normalize_language(x, types = c("ISO639.1", "ISO639.2B", "ISO639.2T",
-  "ISO639.3", "ISO639.6", "ISO639.3_macro", "wikipedia", "autonym", "en", "fr",
-  "de", "ru", "es", "zh"))
+normalize_language(x, types = c("locale", "variant", "ISO639.1", "ISO639.2T",
+  "ISO639.2B", "ISO639.3", "ISO639.6", "wikipedia", "other", "autonym", "en",
+  "fr", "de", "ru", "es", "it", "zh"))
 }
 \description{
 Returns the highest level ISO or Wikipedia language code corresponding to the ISO or Wikipedia language code, language name, or autonym provided. If the input matches zero or multiple entries, the input is returned and a warning is raised.

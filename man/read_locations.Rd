@@ -4,15 +4,28 @@
 \alias{read_locations}
 \title{Load Locations Dataset}
 \usage{
-read_locations(file, latlng = c("lat", "lng"), id = "id",
+read_locations(file, xy = c("lng", "lat"), id = "id",
   CRSobj = CRS("+proj=longlat +ellps=WGS84"), ...)
+}
+\arguments{
+\item{file}{The path of the file to be read.}
+
+\item{xy}{Names of the x and y coordinate fields (renamed to "lng", "lat" respectively).}
+
+\item{id}{Name of the id field (renamed to "id").}
+
+\item{CRSobj}{Coordinate reference system (\code{\link{sp::CRS}}).}
+
+\item{...}{Additional parameters passed to \code{\link{read.table}} or \code{\link{rgdal::readOGR}}.}
 }
 \description{
 TODO: Check that id field is unique, warn otherwise.
 }
 \seealso{
-Other location import functions: \code{\link{apply_ff_type_matches}},
-  \code{\link{match_to_ff_types}},
+Other location import functions: \code{\link{aggregate_locations_by_position}},
+  \code{\link{apply_ff_type_matches}},
+  \code{\link{build_match_table}},
+  \code{\link{match_names_to_ff_types}},
   \code{\link{write_locations_for_import}}
 }
 

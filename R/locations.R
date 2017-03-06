@@ -2,13 +2,18 @@
 #'
 #' TODO: Check that id field is unique, warn otherwise.
 #'
+#' @param file The path of the file to be read.
+#' @param xy Names of the x and y coordinate fields (renamed to "lng", "lat" respectively).
+#' @param id Name of the id field (renamed to "id").
+#' @param CRSobj Coordinate reference system (\code{\link{sp::CRS}}).
+#' @param ... Additional parameters passed to \code{\link{read.table}} or \code{\link{rgdal::readOGR}}.
 #' @export
 #' @family location import functions
-read_locations <- function(file, latlng = c("lat", "lng"), id = "id", CRSobj = CRS("+proj=longlat +ellps=WGS84"), ...) {
+read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = CRS("+proj=longlat +ellps=WGS84"), ...) {
 
   # Read file
   if (grepl("\\.csv", file)) {
-    df <- read.csv(file, stringsAsFactors = FALSE, ...)
+    df <- read.csv(file, stringsAsFactors = FALSE, na.strings = c("", "NA"), ...)
   } else if (grepl("\\.dbf", file)) {
     df <- read.dbf(file, as.is = TRUE)
   } else if (grepl("\\.shp", file)) {
@@ -32,15 +37,15 @@ read_locations <- function(file, latlng = c("lat", "lng"), id = "id", CRSobj = C
     df <- read.table(file, stringsAsFactors = FALSE, ...)
   }
 
-  # Standardize lat,lng to "lat","lng"
-  if (all(!is.empty(latlng), latlng %in% names(df))) {
-    names(df)[names(df) == latlng[1]] = "lat"
-    names(df)[names(df) == latlng[2]] = "lng"
+  # Standardize name of coordinate fiels
+  if (all(!is.empty(xy), xy %in% names(df))) {
+    names(df)[names(df) == xy[1]] = "lng"
+    names(df)[names(df) == xy[2]] = "lat"
   } else {
     warning('No coordinates available!')
   }
 
-  # Standardize id to "id"
+  # Standardize name of id field
   if (all(!is.empty(id), id %in% names(df))) {
     names(df)[names(df) == id] = "id"
   } else {
@@ -51,85 +56,123 @@ read_locations <- function(file, latlng = c("lat", "lng"), id = "id", CRSobj = C
   return(data.table(df, key = "id"))
 }
 
-#' Match Against Falling Fruit Types
+#' Match Names Against Falling Fruit Types
 #'
-#' TODO: Don't match if already matched.
-#'
+#' @param scientific_names Vector of scientific names.
+#' @param common_names Vector of common names.
+#' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
+#' @param max_distance Maximum distance for fuzzy matching, as returned by \code{\link{stringdist::stringdistmatrix}}.
+#' @param locale Locale of names to use for matching.
+#' @param ... Additional parameters passed to \code{\link{stringdist::stringdistmatrix}}.
 #' @export
 #' @family location import functions
-match_to_ff_types <- function(dt, types, saved_match_table) {
-
-  # Initialize
-  has_scientific_names <- "matched_scientific_name" %in% names(dt)
-  has_common_names <- "matched_common_name" %in% names(dt)
+match_names_to_ff_types <- function(scientific_names = NULL, common_names = NULL, types = get_ff_types(pending = FALSE), max_distance = 3, n_nearest = Inf, locale = "en", ...) {
 
   # Prepare names
-  dt_name_fields <- intersect(c("matched_scientific_name", "matched_common_name", "printed_scientific_name", "printed_common_name"), names(dt))
-  dt_name_combinations <- dt[, .(count = .N), by = dt_name_fields]
-  setorderv(dt_name_combinations, dt_name_fields)
-  if (has_scientific_names) {
-    dt_names <- dt_name_combinations[, NA, by = matched_scientific_name][, V1 := NULL]
-    setnames(dt_names, "matched_scientific_name", "name")
+  use_scientific_names <- !is.null(scientific_names)
+  if (use_scientific_names) {
+    original_names <- scientific_names
+  } else if (!is.null(common_names)) {
+    original_names <- common_names
+  } else {
+    stop("No names provided.")
+  }
+  matched_names <- unique(original_names[!is.empty(original_names)])
+
+  # Prepare type names
+  if (use_scientific_names) {
     type_names <- types[, .(name = unlist(matched_scientific_names)), by = id]
   } else {
-    dt_names <- dt_name_combinations[, NA, by = matched_common_name][, V1 := NULL]
-    setnames(dt_names, "matched_common_name", "name")
-    type_names <- types[, .(name = unlist(matched_common_names)), by = id]
+    if (locale == "en") {
+      type_names <- types[, .(name = unlist(matched_common_names)), by = id]
+    } else {
+      locale_name <- paste0(locale, "_name")
+      type_names <- types[, c("id", locale_name), with = FALSE]
+      data.table::setnames(type_names, locale_name, "name")
+    }
   }
+  type_names <- type_names[!is.empty(name), ]
 
   # Calculate string distances
-  distance_matrix <- stringdistmatrix(dt_names$name, type_names$name)
+  distance_matrix <- stringdist::stringdistmatrix(matched_names, type_names$name, ...)
 
-  # Choose exact matches
-  exact_matches <- apply(distance_matrix, 1, function(distances) {
-    unique(type_names[distances == 0, id])
+  # Build match results
+  n_nearest <- min(nrow(type_names), n_nearest)
+  matches <- lapply(seq_along(matched_names), function(i) {
+    distances <- distance_matrix[i, ]
+    is_real <- !is.na(distances)
+    is_exact <- is_real & distances == 0
+    is_fuzzy <- is_real & distances > 0 & distances < max_distance
+    exact_types <- type_names[is_exact, id]
+    fuzzy_types <- type_names[which(is_fuzzy)[order(distances[is_fuzzy])], id]
+    list(
+      rows = list(which(matched_names[i] == original_names)),
+      name = matched_names[i],
+      scientific = use_scientific_names,
+      exact = list(exact_types),
+      fuzzy = list(head(fuzzy_types, min(n_nearest, length(fuzzy_types))))
+    )
   })
-  exact_match_strings <- sapply(exact_matches, function(type_ids) {
+
+  # Return tabulated results
+  return(data.table::rbindlist(matches))
+}
+
+#' Built Match Table from Name Matches
+#'
+#' TODO: Support ordered list of name fields.
+#'
+#' @param matches Result of \code{\link{match_names_to_ff_types}}.
+#' @param dt Original data.
+#' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
+#' @param saved_table Previous result with saved edits.
+#' @export
+#' @family location import functions
+build_match_table <- function(matches, dt, types = get_ff_types(pending = FALSE), saved_table = NULL) {
+
+  # Prepare match strings
+  exact_strings <- lapply(matches$exact, function(type_ids) {
+    sapply(type_ids, function(type_id) {
+      types[id == type_id, build_type_strings(id, name, scientific_name)]
+    })
+  })
+  fuzzy_strings <- lapply(matches$fuzzy, function(type_ids) {
     sapply(type_ids, function(type_id) {
       types[id == type_id, build_type_strings(id, name, scientific_name)]
     })
   })
 
-  # Choose fuzzy matches
-  fuzzy_matches <- apply(distance_matrix, 1, function(distances) {
-    are_nearby <- distances > 0 & distances < 3
-    sorted_matches <- which(are_nearby)[order(distances[are_nearby])]
-    head(unique(type_names[sorted_matches, id]), 2)
+  # Build initial table
+  # dt | types (exact_strings[1] if length = 1) | fuzzy_strings | exact_matches | rows)
+  type_string <- sapply(exact_strings, function(strings) {
+    ifelse(length(strings) == 1, strings, "")
   })
-  fuzzy_match_strings <- sapply(fuzzy_matches, function(type_ids) {
-    sapply(type_ids, function(type_id) {
-      types[id == type_id, build_type_strings(id, name, scientific_name)]
-    })
+  fuzzy_string <- sapply(fuzzy_strings, paste, collapse = ", ")
+  exact_string <- sapply(exact_strings, function(strings) {
+    ifelse(length(strings) < 2, "", paste(strings, collapse = ", "))
   })
+  temp <- data.table::data.table(name = matches$name, types = type_string, unverified = "", fuzzy_matches = fuzzy_string, exact_matches = exact_string)
 
-  # Compile and clean up results
-  dt_names[, types := sapply(exact_match_strings, function(strings) { ifelse(length(strings) == 1, strings, NA) })]
-  dt_names[, fuzzy_matches := sapply(fuzzy_match_strings, paste, collapse = ", ")]
-  dt_names[, exact_matches := sapply(exact_match_strings, function(strings) { ifelse(length(strings) < 2, NA, paste(strings, collapse = ", ")) })]
-  dt_names[, unverified := as.character(NA)]
-  match_table <- merge(dt_name_combinations, dt_names, by.x = ifelse(has_scientific_names, "matched_scientific_name", "matched_common_name"), by.y = "name")
-  # TODO: Leave as printed_* (and update following code accordingly) ?
-  if (has_scientific_names) {
-    setnames(match_table, "printed_scientific_name", "scientific_name")
-    match_table[, matched_scientific_name := NULL]
-  }
-  if (has_common_names) {
-    setnames(match_table, "printed_common_name", "common_name")
-    match_table[, matched_common_name := NULL]
-  }
-  match_table[!is.na(exact_matches) | !is.na(types), fuzzy_matches := NA]
-  setcolorder(match_table, c("count", ifelse(has_common_names, "common_name", NA), ifelse(has_scientific_names, "scientific_name", NA), "types", "fuzzy_matches", "exact_matches", "unverified"))
+  # Format final table
+  # (merge with original data, summarize unique by count and rows)
+  temp <- temp[rep(1:.N, sapply(matches$rows, length))][order(unlist(matches$rows))]
+  names(dt) <- paste0("dt.", names(dt))
+  merged <- cbind(dt, temp)
+  match_table <- merged[, .(count = .N, rows = paste(.I, collapse = ",")), by = names(merged)][order(count, decreasing = TRUE)][]
 
-  # Update and save results
-  if (is.null(saved_match_table)) {
-    return(match_table)
-  } else {
-    saved_match_table$types <- ifelse(is.na(saved_match_table$types) | saved_match_table$types == "", match_table$types, saved_match_table$types)
-    saved_match_table$exact_matches <- ifelse(is.na(saved_match_table$exact_matches) | saved_match_table$exact_matches == "", match_table$exact_matches, saved_match_table$exact_matches)
-    saved_match_table$fuzzy_matches <- ifelse(is.na(saved_match_table$fuzzy_matches) | saved_match_table$fuzzy_matches == "", match_table$fuzzy_matches, saved_match_table$fuzzy_matches)
-    saved_match_table$unverified <- ifelse(is.na(saved_match_table$unverified) | saved_match_table$unverified == "", match_table$unverified, saved_match_table$unverified)
-    return(saved_match_table)
+  # Update from saved table
+  if (!is.null(saved_table)) {
+    if (!identical(names(match_table), names(saved_table)) || !identical(match_table$name, saved_table$name) || !identical(match_table$rows, saved_table$rows)) {
+      stop("Saved table does not match structure of new results.")
+    }
+    saved_fields <- c("types", "unverified")
+    for (field in saved_fields) {
+      match_table[, field := ifelse(is.empty(saved_table[[field]]), match_table[[field]], saved_table[[field]]), with = FALSE]
+    }
   }
+
+  # Return final table
+  return(match_table)
 }
 
 #' Apply Type Matches
@@ -171,6 +214,7 @@ apply_ff_type_matches <- function(dt, types, match_table, drop = FALSE) {
 #' TODO: Make faster?
 #' WARNING: build_location_description expects singular type strings.
 #' @export
+#' @family location import functions
 aggregate_locations_by_position <- function(dt, sep = ". ") {
   # Select position fields
   if (all(c("lat", "lng") %in% names(dt))) {

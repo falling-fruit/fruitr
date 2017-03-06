@@ -10,7 +10,9 @@ apply_ff_type_matches(dt, types, match_table, drop = FALSE)
 Apply Type Matches
 }
 \seealso{
-Other location import functions: \code{\link{match_to_ff_types}},
+Other location import functions: \code{\link{aggregate_locations_by_position}},
+  \code{\link{build_match_table}},
+  \code{\link{match_names_to_ff_types}},
   \code{\link{read_locations}},
   \code{\link{write_locations_for_import}}
 }
