@@ -81,10 +81,10 @@ parse_type_strings <- function(type_strings) {
 #' types <- get_ff_types()
 #' match_type_strings("Apple", types)
 #' match_type_strings(c("Apple [Malus domestica]", "Pear [Pyrus]"), types)
-match_type_strings <- function(type_strings, types, simplify = FALSE) {
+match_type_strings <- function(type_strings, types = get_ff_types(pending = FALSE, urls = FALSE), simplify = FALSE) {
   ts <- parse_type_strings(type_strings)
   matches <- sapply(ts, function(t) {
-    types[(id == t$id | is.na(t$id)) & (name == t$name | is.na(t$name)) & (scientific_name == t$scientific_name | is.na(t$scientific_name))]$id
+    types[(is.na(t$id) | id == t$id) & (is.na(t$name) | name == t$name) & (is.na(t$scientific_name) | scientific_name == t$scientific_name), id]
   }, simplify = simplify)
   return(matches)
 }
@@ -104,12 +104,17 @@ normalize_type_strings <- function(type_strings, types) {
   matched_type_strings <- na.omit(unique(unlist(strsplit(type_strings, "\\s*,\\s*"))))
   matches <- match_type_strings(matched_type_strings, types)
   n_matches <- sapply(matches, length)
+  has_id <- !is.na(sapply(parse_type_strings(matched_type_strings), "[[", "id"))
   has_no_matches <- n_matches == 0
   has_many_matches <- n_matches > 1
-  is_invalid <- has_no_matches | has_many_matches
-  if (sum(has_no_matches) > 0) {
-    cat("Unrecognized type strings:", sep = "\n")
-    cat(matched_type_strings[has_no_matches], sep = "\n")
+  is_invalid <- (has_no_matches & has_id) | has_many_matches
+  if (sum(has_no_matches & !has_id) > 0) {
+    cat("New types:", sep = "\n")
+    cat(matched_type_strings[has_no_matches & !has_id], sep = "\n")
+  }
+  if (sum(has_no_matches & has_id) > 0) {
+    cat("Unrecognized type strings with id:", sep = "\n")
+    cat(matched_type_strings[has_no_matches & has_id], sep = "\n")
   }
   if (sum(has_many_matches) > 0) {
     cat("Ambiguous type strings:", sep = "\n")

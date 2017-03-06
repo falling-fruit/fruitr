@@ -4,7 +4,7 @@
 \alias{build_wiki_url}
 \title{Build Wiki URL}
 \usage{
-build_wiki_url(wiki, type, page)
+build_wiki_url(wiki, type, page, url = NULL)
 }
 \description{
 Build Wiki URL

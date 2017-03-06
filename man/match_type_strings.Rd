@@ -4,7 +4,8 @@
 \alias{match_type_strings}
 \title{Match Type Strings to Types}
 \usage{
-match_type_strings(type_strings, types, simplify = FALSE)
+match_type_strings(type_strings, types = get_ff_types(pending = FALSE, urls =
+  FALSE), simplify = FALSE)
 }
 \description{
 Match Type Strings to Types

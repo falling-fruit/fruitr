@@ -11,8 +11,10 @@ See http://fallingfruit.org/locations/import for format.
 FIXME: Do not edit dt in place.
 }
 \seealso{
-Other location import functions: \code{\link{apply_ff_type_matches}},
-  \code{\link{match_to_ff_types}},
+Other location import functions: \code{\link{aggregate_locations_by_position}},
+  \code{\link{apply_ff_type_matches}},
+  \code{\link{build_match_table}},
+  \code{\link{match_names_to_ff_types}},
   \code{\link{read_locations}}
 }
 

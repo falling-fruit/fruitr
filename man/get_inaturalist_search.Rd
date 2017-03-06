@@ -15,6 +15,7 @@ Undocumented, but equivalent to the HTML equivalent \url{http://www.inaturalist.
 \examples{
 str(content(get_inaturalist_search("Malus domestica")))
 str(content(get_inaturalist_search("Abelmoschus")))
+str(content(get_inaturalist_search("Citrus x sinensis")))
 }
 \seealso{
 Other iNaturalist functions: \code{\link{get_inaturalist_page}},

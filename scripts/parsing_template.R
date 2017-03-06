@@ -1,5 +1,4 @@
-source('api_functions.r')
-source('parsing_functions.r')
+library(fruitr)
 
 #############
 ## Initialize
@@ -7,8 +6,8 @@ source('parsing_functions.r')
 ## Load data
 directory <- "DIRECTORY"
 file <- "FILE"
-#readLines(paste0(directory, file), n = 1)
-dt <- load_data(paste0(directory, file), latlng = c("LATITUDE", "LONGITUDE"), id = NULL)
+readLines(paste0(directory, file), n = 1) # Print first line of file
+dt <- read_locations(paste0(directory, file), latlng = c("LATITUDE", "LONGITUDE"), id = NULL)
 
 #############
 ## Prepare names

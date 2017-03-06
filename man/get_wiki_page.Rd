@@ -4,8 +4,7 @@
 \alias{get_wiki_page}
 \title{Get Wiki Page from API}
 \usage{
-get_wiki_page(url, wiki, type, page, format = "json", action = "parse",
-  redirects = TRUE)
+get_wiki_page(url, format = "json", action = "parse", redirects = TRUE)
 }
 \description{
 Get Wiki Page from API

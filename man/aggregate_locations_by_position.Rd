@@ -13,4 +13,11 @@ Aggregate Locations by Position
 TODO: Make faster?
 WARNING: build_location_description expects singular type strings.
 }
+\seealso{
+Other location import functions: \code{\link{apply_ff_type_matches}},
+  \code{\link{build_match_table}},
+  \code{\link{match_names_to_ff_types}},
+  \code{\link{read_locations}},
+  \code{\link{write_locations_for_import}}
+}
 

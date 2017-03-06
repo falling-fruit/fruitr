@@ -4,7 +4,7 @@
 \alias{parse_wiki_url}
 \title{Parse Wiki URL}
 \usage{
-parse_wiki_url(url)
+parse_wiki_url(url, api = FALSE)
 }
 \description{
 Parse Wiki URL

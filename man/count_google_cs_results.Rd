@@ -4,7 +4,7 @@
 \alias{count_google_cs_results}
 \title{Count Google Custom Search (CS) Results}
 \usage{
-count_google_cs_results(string, language = NULL)
+count_google_cs_results(string, language = NULL, pause = FALSE)
 }
 \description{
 Free up to 100/day. Maximum 10,000/day. Rate limit 1/s. See https://developers.google.com/custom-search/json-api/v1/overview.
