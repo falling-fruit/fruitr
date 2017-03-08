@@ -4,30 +4,32 @@
 \alias{match_names_to_ff_types}
 \title{Match Names Against Falling Fruit Types}
 \usage{
-match_names_to_ff_types(scientific_names = NULL, common_names = NULL,
-  types = get_ff_types(pending = FALSE), max_distance = 3,
-  n_nearest = Inf, locale = "en", ...)
+match_names_to_ff_types(names, ids = NULL, simplify = c("first", "last",
+  "union", "intersection"), types = get_ff_types(pending = FALSE),
+  max_distance = 3, n_nearest = Inf, ...)
 }
 \arguments{
-\item{scientific_names}{Vector of scientific names.}
+\item{names}{Names as a list of named vectors (or table columns). Use "scientific" for scientific names, and locale for common names (e.g. \code{list(scientific = c("malus pumila"), en = c("apple"))}).}
 
-\item{common_names}{Vector of common names.}
+\item{ids}{Unique identifier for each row in \code{names}. If \code{NULL}, row indices are used.}
+
+\item{simplify}{Method used to merge matches for each row in \code{names}. Default is \code{first}. If \code{NULL} or \code{FALSE}, all results are returned.}
 
 \item{types}{Falling Fruit types, as returned by \code{\link{get_ff_types}}.}
 
-\item{max_distance}{Maximum distance for fuzzy matching, as returned by \code{\link{stringdist::stringdistmatrix}}.}
+\item{max_distance}{Maximum distance for fuzzy matching, as calculated by \code{\link{stringdist::stringdistmatrix}}.}
 
-\item{locale}{Locale of names to use for matching.}
+\item{n_nearest}{Maximum number of nearest fuzzy matches to return.}
 
-\item{...}{Additional parameters passed to \code{\link{stringdist::stringdistmatrix}}.}
+\item{...}{Additional arguments passed to \code{\link{stringdist::stringdistmatrix}}.}
 }
 \description{
 Match Names Against Falling Fruit Types
 }
 \seealso{
-Other location import functions: \code{\link{aggregate_locations_by_position}},
-  \code{\link{apply_ff_type_matches}},
+Other location import functions: \code{\link{apply_match_table}},
   \code{\link{build_match_table}},
+  \code{\link{merge_overlapping_locations}},
   \code{\link{read_locations}},
   \code{\link{write_locations_for_import}}
 }

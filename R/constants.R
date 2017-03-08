@@ -2,6 +2,7 @@
 
 Taxonomic_ranks <- c("Polyphyletic", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Multispecies", "Species", "Subspecies")
 Categories <- c("forager", "freegan", "honeybee", "grafter")
+Location_import_fields <- c('Ids', 'Types', 'Description', 'Lat', 'Lng', 'Address', 'Season Start', 'Season Stop', 'No Season', 'Access', 'Unverified', 'Yield Rating', 'Quality Rating', 'Author', 'Photo URL')
 
 # Clusters --------
 

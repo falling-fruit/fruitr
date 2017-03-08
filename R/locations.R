@@ -58,111 +58,135 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = CRS("
 
 #' Match Names Against Falling Fruit Types
 #'
-#' @param scientific_names Vector of scientific names.
-#' @param common_names Vector of common names.
+#' @param names Names as a list of named vectors (or table columns). Use "scientific" for scientific names, and locale for common names (e.g. \code{list(scientific = c("malus pumila"), en = c("apple"))}).
+#' @param ids Unique identifier for each row in \code{names}. If \code{NULL}, row indices are used.
+#' @param simplify Method used to merge matches for each row in \code{names}. Default is \code{first}. If \code{NULL} or \code{FALSE}, all results are returned.
 #' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
-#' @param max_distance Maximum distance for fuzzy matching, as returned by \code{\link{stringdist::stringdistmatrix}}.
-#' @param locale Locale of names to use for matching.
-#' @param ... Additional parameters passed to \code{\link{stringdist::stringdistmatrix}}.
+#' @param max_distance Maximum distance for fuzzy matching, as calculated by \code{\link{stringdist::stringdistmatrix}}.
+#' @param n_nearest Maximum number of nearest fuzzy matches to return.
+#' @param ... Additional arguments passed to \code{\link{stringdist::stringdistmatrix}}.
 #' @export
 #' @family location import functions
-match_names_to_ff_types <- function(scientific_names = NULL, common_names = NULL, types = get_ff_types(pending = FALSE), max_distance = 3, n_nearest = Inf, locale = "en", ...) {
+match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "last", "union", "intersection"), types = get_ff_types(pending = FALSE), max_distance = 3, n_nearest = Inf, ...) {
 
-  # Prepare names
-  use_scientific_names <- !is.null(scientific_names)
-  if (use_scientific_names) {
-    original_names <- scientific_names
-  } else if (!is.null(common_names)) {
-    original_names <- common_names
-  } else {
-    stop("No names provided.")
+  # Check names
+  names <- names[!is.empty(names)]
+  supported_locales <- c("en", gsub("_name$", "", names(types)[grepl("^[a-z_]+_name$", names(types))]))
+  names <- names[intersect(names(names), supported_locales)]
+  n_rows <- unique(sapply(names, length))
+  if (length(n_rows) != 1 | n_rows == 0) {
+    stop(paste0("Names must be a list of non-empty vectors of equal length from supported locales (", paste(supported_locales, collapse = ", "), ")"))
   }
-  matched_names <- unique(original_names[!is.empty(original_names)])
 
-  # Prepare type names
-  if (use_scientific_names) {
-    type_names <- types[, .(name = unlist(matched_scientific_names)), by = id]
-  } else {
-    if (locale == "en") {
-      type_names <- types[, .(name = unlist(matched_common_names)), by = id]
-    } else {
-      locale_name <- paste0(locale, "_name")
-      type_names <- types[, c("id", locale_name), with = FALSE]
-      data.table::setnames(type_names, locale_name, "name")
-    }
+  # Check ids
+  if (is.null(ids)) {
+    ids <- seq_len(n_rows)
   }
-  type_names <- type_names[!is.empty(name), ]
 
-  # Calculate string distances
-  distance_matrix <- stringdist::stringdistmatrix(matched_names, type_names$name, ...)
+  # For each locale...
+  locales <- names(names)
+  name_groups <- cbind(id = ids, data.table::as.data.table(names))[, .(id = list(id)), by = locales]
+  match_tables <- lapply(locales, function(locale) {
 
-  # Build match results
-  n_nearest <- min(nrow(type_names), n_nearest)
-  matches <- lapply(seq_along(matched_names), function(i) {
-    distances <- distance_matrix[i, ]
-    is_real <- !is.na(distances)
-    is_exact <- is_real & distances == 0
-    is_fuzzy <- is_real & distances > 0 & distances < max_distance
-    exact_types <- type_names[is_exact, id]
-    fuzzy_types <- type_names[which(is_fuzzy)[order(distances[is_fuzzy])], id]
-    list(
-      rows = list(which(matched_names[i] == original_names)),
-      name = matched_names[i],
-      scientific = use_scientific_names,
-      exact = list(exact_types),
-      fuzzy = list(head(fuzzy_types, min(n_nearest, length(fuzzy_types))))
+    # Prepare given names
+    given_names <- name_groups[!is.empty(name_groups[[locale]]), .(id = list(unlist(id))), by = locale]
+    data.table::setnames(given_names, locale, "name")
+
+    # Prepare corresponding type names
+    types_name_field <- switch(locale,
+      scientific = "matched_scientific_names",
+      en = "matched_common_names",
+      paste(locale, "name", sep = "_")
     )
+    type_names <- types[!is.empty(types[[types_name_field]])][, .(name = unlist(.SD)), by = id, .SDcols = types_name_field]
+
+    # Compute distance matrix
+    distance_matrix <- stringdist::stringdistmatrix(given_names$name, type_names$name, ...)
+
+    # Build match results
+    matches <- lapply(seq_len(nrow(given_names)), function(i) {
+      distances <- distance_matrix[i, ]
+      is_real <- !is.na(distances)
+      is_exact <- is_real & distances == 0
+      is_fuzzy <- is_real & distances > 0 & distances < max_distance
+      is_fuzzy_sorted <- which(is_fuzzy)[order(distances[is_fuzzy])]
+      exact_types <- type_names$id[is_exact]
+      fuzzy_types <- type_names$id[is_fuzzy_sorted]
+      fuzzy_distances <- distances[is_fuzzy_sorted]
+      n_fuzzy <- min(n_nearest, length(fuzzy_types))
+      list(
+        exact = list(exact_types),
+        fuzzy = list(head(fuzzy_types, n_fuzzy)),
+        distance = list(head(fuzzy_distances, n_fuzzy))
+      )
+    })
+
+    # Compile match results
+    return(cbind(given_names, data.table::rbindlist(matches)))
   })
 
-  # Return tabulated results
-  return(data.table::rbindlist(matches))
+  # Return all matches
+  if (is.null(simplify) || (is.logical(simplify) && !simplify)) {
+    match_tables <- lapply(seq_along(match_tables), function(i) {
+      match_tables[[i]][, locale := locales[i]]
+    })
+    return(data.table::rbindlist(match_tables))
+  # Return simplified matches
+  } else {
+    merged <- data.table::rbindlist(match_tables)
+    expanded <- merged[rep(seq_len(nrow(merged)), sapply(id, length))][, id := unlist(merged$id)]
+    matches <- switch(simplify[1],
+      first = expanded[, .(exact = exact[1], fuzzy = fuzzy[1]), by = id],
+      last = expanded[, .(exact = exact[.N], fuzzy = fuzzy[.N]), by = id],
+      union = expanded[, .(exact = list(Reduce(union, exact)), fuzzy = list(Reduce(union, fuzzy))), by = id],
+      intersection = expanded[, .(exact = list(Reduce(intersect, exact)), fuzzy = list(Reduce(intersect, fuzzy))), by = id],
+      stop(paste("Unsupported simplify:", simplify[1]))
+    )
+    return(matches)
+  }
 }
 
 #' Built Match Table from Name Matches
 #'
-#' TODO: Support ordered list of name fields.
-#'
-#' @param matches Result of \code{\link{match_names_to_ff_types}}.
-#' @param dt Original data.
+#' @param dt Locations data.
+#' @param matches Result of \code{\link{match_names_to_ff_types}} with a simplify method selected.
+#' @param join_by Name of column in \code{dt} to join to \code{matches}.
+#' @param group_by Name of column(s) in \code{dt} to include and group matches by in output.
 #' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
 #' @param saved_table Previous result with saved edits.
 #' @export
 #' @family location import functions
-build_match_table <- function(matches, dt, types = get_ff_types(pending = FALSE), saved_table = NULL) {
+build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, types = get_ff_types(pending = FALSE), saved_table = NULL) {
 
-  # Prepare match strings
-  exact_strings <- lapply(matches$exact, function(type_ids) {
-    sapply(type_ids, function(type_id) {
-      types[id == type_id, build_type_strings(id, name, scientific_name)]
-    })
+  # Initial match table
+  # id | types (exact_strings[1] if length = 1) | fuzzy_strings | exact_matches | ...
+  type_ids <- unique(unlist(matches[, .(exact, fuzzy)]))
+  type_strings <- sapply(type_ids, function(type_id) {
+    types[id == type_id, build_type_strings(id, name, scientific_name)]
   })
-  fuzzy_strings <- lapply(matches$fuzzy, function(type_ids) {
-    sapply(type_ids, function(type_id) {
-      types[id == type_id, build_type_strings(id, name, scientific_name)]
-    })
+  selected_strings <- sapply(matches$exact, function(ids) {
+    if (length(ids) != 1) "" else type_strings[match(ids, type_ids)]
   })
+  exact_strings <- sapply(matches$exact, function(ids) {
+    if (length(ids) < 2) "" else paste(type_strings[match(ids, type_ids)], collapse = ", ")
+  })
+  fuzzy_strings <- sapply(matches$fuzzy, function(ids) {
+    paste(type_strings[match(ids, type_ids)], collapse = ", ")
+  })
+  match_temp <- data.table::data.table(id = matches$id, types = selected_strings, fuzzy_matches = fuzzy_strings, exact_matches = exact_strings)
 
-  # Build initial table
-  # dt | types (exact_strings[1] if length = 1) | fuzzy_strings | exact_matches | rows)
-  type_string <- sapply(exact_strings, function(strings) {
-    ifelse(length(strings) == 1, strings, "")
-  })
-  fuzzy_string <- sapply(fuzzy_strings, paste, collapse = ", ")
-  exact_string <- sapply(exact_strings, function(strings) {
-    ifelse(length(strings) < 2, "", paste(strings, collapse = ", "))
-  })
-  temp <- data.table::data.table(name = matches$name, types = type_string, unverified = "", fuzzy_matches = fuzzy_string, exact_matches = exact_string)
+  # Join with location data
+  dt.group_by <- paste("dt", group_by, sep = ".")
+  dt_subset <- dt[, union(join_by, group_by), with = FALSE]
+  data.table::setnames(dt_subset, group_by, dt.group_by)
+  merged <- merge(dt_subset, match_temp, by.x = join_by, by.y = "id", all = FALSE)
 
-  # Format final table
-  # (merge with original data, summarize unique by count and rows)
-  temp <- temp[rep(1:.N, sapply(matches$rows, length))][order(unlist(matches$rows))]
-  names(dt) <- paste0("dt.", names(dt))
-  merged <- cbind(dt, temp)
-  match_table <- merged[, .(count = .N, rows = paste(.I, collapse = ",")), by = names(merged)][order(count, decreasing = TRUE)][]
+  # Group by grouping columns
+  match_table <- merged[, .(unverified = "", count = .N, id = paste(id, collapse = ",")), by = c(dt.group_by, "types", "fuzzy_matches", "exact_matches")][order(count, decreasing = TRUE)]
 
   # Update from saved table
   if (!is.null(saved_table)) {
-    if (!identical(names(match_table), names(saved_table)) || !identical(match_table$name, saved_table$name) || !identical(match_table$rows, saved_table$rows)) {
+    if (!identical(names(match_table), names(saved_table)) || !identical(match_table$name, saved_table$name) || !identical(match_table$id, saved_table$id)) {
       stop("Saved table does not match structure of new results.")
     }
     saved_fields <- c("types", "unverified")
@@ -172,51 +196,51 @@ build_match_table <- function(matches, dt, types = get_ff_types(pending = FALSE)
   }
 
   # Return final table
-  return(match_table)
+  return(match_table[])
 }
 
-#' Apply Type Matches
+#' Apply Match Table to Locations
 #'
+#' @param dt Locations data.
+#' @param match_table Type assignments, as returned by \code{\link{get_ff_types}}.
+#' @param drop Whether to drop unassigned rows in \code{dt}.
 #' @export
 #' @family location import functions
-apply_ff_type_matches <- function(dt, types, match_table, drop = FALSE) {
+apply_match_table <- function(dt, match_table, drop = FALSE) {
 
   # Verify completeness
-  is_empty <- sapply(match_table$types, is.empty)
+  is_empty <- is.empty(match_table$types)
   if (sum(is_empty) > 0) {
-    cat("Empty match_table rows:", sep = "\n")
-    cat(build_type_strings(common_names = match_table$common_name[is_empty], scientific_names = match_table$scientific_name[is_empty]), sep = "\n")
-    if (!drop) {
-      stop("Use drop = TRUE to ignore and drop corresponding dt rows.")
-    }
+    stop("Unassigned match_table rows (empty types field). Use drop = TRUE to drop corresponding dt rows.")
   }
 
-  # Standardize assigned types
-  # TODO: Avoid unfortunate scoping?
-  e <- environment()
-  match_table[, types := normalize_type_strings(types, e$types)]
-
-  # Prepare row assignments
-  dt <- merge(dt, match_table[, intersect(c("scientific_name", "common_name", "types", "unverified"), names(match_table)), with = FALSE], by.x = intersect(c("printed_scientific_name", "printed_common_name"), names(dt)), by.y = intersect(c("scientific_name", "common_name"), names(match_table)))
+  # Assign types
+  id_lists <- sapply(strsplit(match_table$id, split = "\\s*,\\s*"), as.numeric)
+  temp <- match_table[rep(1:.N, sapply(id_lists, length))][order(unlist(id_lists))]
+  merged <- cbind(dt, temp[, .(types, unverified)])
 
   # Drop unassigned rows
   if (drop) {
-    unassigned <- is.na(dt$types) | dt$types == "NA"
+    unassigned <- is.empty(merged$types) | merged$types == "NA"
     if (sum(unassigned) > 0) {
       cat(paste("Dropping", sum(unassigned), "unassigned dt row(s)."), sep = "\n")
-      dt <- dt[!unassigned]
+      merged <- merged[!unassigned]
     }
   }
-  return(dt)
+  return(merged)
 }
 
 #' Aggregate Locations by Position
-#' TODO: Make faster?
-#' WARNING: build_location_description expects singular type strings.
+#'
+#' NOTE: Multi-type locations may need to be split before being merged (see \code{\link{build_location_description}}).
+#'
+#' @param dt Locations data.
+#' @param sep Character string to seperate the retained notes.
 #' @export
 #' @family location import functions
-aggregate_locations_by_position <- function(dt, sep = ". ") {
-  # Select position fields
+merge_overlapping_locations <- function(dt, note_sep = ". ") {
+
+  ## Select position fields
   if (all(c("lat", "lng") %in% names(dt))) {
     position_fields <- c("lat", "lng")
   } else if ("address" %in% names(dt)) {
@@ -225,68 +249,70 @@ aggregate_locations_by_position <- function(dt, sep = ". ") {
     stop("No position fields found (lat,lng | address).")
   }
 
-  # Apply default description field
-  if (!("description" %in% names(dt))) {
-    printed_common_names <- dt$printed_common_name
-    printed_scientific_names <- dt$printed_scientific_name
-    science_in_string <- "()"
-    if (is.null(printed_common_names)) {
-      science_in_string <- ""
-    }
-    dt[, description := build_type_strings(common_names = printed_common_names, scientific_names = printed_scientific_names, science_in = science_in_string)]
+  ## Add missing fields
+  fields <- gsub(" ", ".", tolower(Location_import_fields))
+  missing_fields <- setdiff(fields, names(dt))
+  if (length(missing_fields) > 0) {
+    dt[, missing_fields := NA_character_, with = FALSE]
   }
 
-  # Add missing fields
-  if (!("notes" %in% names(dt))) {
-    dt[, notes := Map(list, NA)]
+  ## Cast field types
+  # Convert notes to list
+  if (!is.list(dt$notes)) {
+    dt[, notes := as.list(notes)]
   }
-  if (!("author" %in% names(dt))) {
-    dt[, author := NA]
-  }
-  if (!("access" %in% names(dt))) {
-    dt[, access := NA]
-  }
-
   # Convert id to character (for ifelse/paste in next step)
   if (!is.character(dt$id)) {
     dt[, id := as.character(id)]
   }
 
-  # Aggregate by duplicated positions
-  # (Multi-type locations should be split apart before being joined together here)
-  fdt <- dt[, .(
-    ids = ifelse(.N == 1, id, paste(unique(id), collapse = ", ")),
-    types = ifelse(.N == 1, types, paste(unique(types), collapse = ", ")),
-    description = build_location_description(description, notes, sep = sep),
-    access = ifelse(.N == 1, access, unique_na(access)),
-    author = ifelse(.N == 1, author, paste(unique(author), collapse = ", "))
+  # Merge locations by position fields
+  # NOTE: Multi-type locations should be split apart before being joined together here (see build_location_description).
+  merged <- dt[, .(
+    ids = paste(na.omit(unique(id)), collapse = ", "),
+    types = paste(na.omit(unique(types)), collapse = ", "),
+    description = build_location_description(description, notes, sep = note_sep),
+    # FIXME: May not work for seasons spanning two calendar years.
+    season.start = if (all(is.na(season.start))) NA_integer_ else as.integer(min(season.start, na.rm = TRUE)),
+    season.stop = if (all(is.na(season.stop))) NA_integer_ else as.integer(max(season.stop, na.rm = TRUE)),
+    no.season = if (any(grepl("^x$|^t$|^true$", no.season, ignore.case = TRUE))) "x" else NA_character_,
+    access = unique_na(access),
+    unverified = if (any(grepl("^x$|^t$|^true$", unverified, ignore.case = TRUE))) "x" else NA_character_,
+    yield.rating = if (all(is.na(yield.rating))) NA_integer_ else as.integer(round(mean(yield.rating, na.rm = TRUE))),
+    quality.rating = if (all(is.na(quality.rating))) NA_integer_ else as.integer(round(mean(quality.rating, na.rm = TRUE))),
+    author = paste(na.omit(unique(author)), collapse = ", "),
+    # FIXME: Import only supports one photo URL.
+    photo.url = photo.url[1]
   ), by = position_fields]
-  return(fdt)
+
+  # Return merged locations
+  return(merged)
 }
 
 #' Write Locations to File for Import
 #'
-#' See http://fallingfruit.org/locations/import for format.
-#' FIXME: Do not edit dt in place.
-#'
+#' @param dt Locations data.
+#' @param file Path to file.
 #' @export
 #' @family location import functions
-write_locations_for_import <- function(dt, file, drop_extra_fields = TRUE) {
+write_locations_for_import <- function(dt, file) {
 
-  # Initialize
-  Location_import_fields <- c('Ids','Types','Description','Lat','Lng','Address','Season Start','Season Stop','No Season','Access','Unverified','Yield Rating','Quality Rating','Author','Photo URL')
-  setnames(dt, capitalize_words(gsub("\\.|_", " ", names(dt))))
-  extra_fields <- setdiff(names(dt), Location_import_fields)
-  missing_fields <- setdiff(Location_import_fields, names(dt))
+  # Keep only recognized fields
+  fields <- gsub(" ", ".", tolower(Location_import_fields))
+  if (any(duplicated(intersect(names(dt), fields)))) {
+    stop("Duplicate import field names found.")
+  }
+  dt <- dt[, intersect(fields, names(dt)), with = FALSE]
 
-  # Format columns
+  # Add missing fields
+  missing_fields <- setdiff(fields, names(dt))
   if (length(missing_fields) > 0) {
-    dt[, (missing_fields) := NA]
+    dt[, missing_fields := NA, with = FALSE]
+    data.table::setcolorder(dt, fields)
   }
-  setcolorder(dt, c(Location_import_fields, extra_fields))
-  if (drop_extra_fields & length(extra_fields) > 0) {
-    dt[, (extra_fields) := NULL]
-  }
+
+  # Rename fields
+  data.table::setnames(dt, Location_import_fields[match(names(dt), fields)])
 
   # Write result to file
   write.csv(dt, file, na = "", row.names = FALSE)
