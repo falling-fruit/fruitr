@@ -1,73 +1,96 @@
-library(fruitr)
+# ---- Initialize ----
 
-#############
-## Initialize
+# Read locations from file
+file <- "PATH/TO/FILE"
+dt <- fruitr::read_locations(file, id = "ID", xy = c("LNG", "LAT"), CRSobj = CRS("+proj=longlat +ellps=WGS84"))
 
-## Load data
-directory <- "DIRECTORY"
-file <- "FILE"
-readLines(paste0(directory, file), n = 1) # Print first line of file
-dt <- read_locations(paste0(directory, file), latlng = c("LATITUDE", "LONGITUDE"), id = NULL)
+# ---- Find matches ----
 
-#############
-## Prepare names
-
-dt$common_name <- dt$COMMON
-dt$scientific_name <- dt$SCIENTIFIC
-
-if ("common_name" %in% names(dt)) {
-  dt[, printed_common_name := format_strings(common_name, "printed_common_name")]
-  dt[, matched_common_name := format_strings(common_name, "matched_common_name")]
-}
-
-if ("scientific_name" %in% names(dt)) {
-  dt[, printed_scientific_name := format_strings(scientific_name, "printed_scientific_name")]
-  dt[, matched_scientific_name := format_strings(scientific_name, "matched_scientific_name")]
-}
-
-matched_name_fields <- intersect(c("matched_scientific_name", "matched_common_name"), names(dt))
-print(dt[order(dt[, matched_name_fields[1], with = FALSE]), matched_name_fields, with = FALSE][, .(count = .N), by = matched_name_fields], nrows = Inf)
-
-#############
-## Match names to types
+# Initialize empty match table
 match_table <- NULL
 
-# Perform match
-types <- get_ff_types(locale = "en")
-match_table <- match_to_ff_types(dt, types, match_table)
+# Prepare names for matching
+matched_scientific_names <- fruitr::format_strings(dt[["SCIENTIFIC_NAME"]], "matched_scientific_name") # or NULL
+matched_common_names <- fruitr::format_strings(dt[["COMMON_NAME"]], "matched_common_name") # or NULL
 
-# Edit matches
-match_table <- as.data.table(fix(match_table)); match_table$types <- normalize_type_strings(match_table$types, types)
+# Match names against Falling Fruit types (repeat as needed)
+ff_types <- fruitr::get_ff_types(pending = FALSE)
+matches <- fruitr::match_names_to_ff_types(names = list("scientific" = matched_scientific_names, "en" = matched_common_names), ids = dt$id, simplify = "first", max_distance = 3, n_nearest = 2, types = ff_types)
+match_table <- fruitr::build_match_table(dt, matches, join_by = "id", group_by = c("GROUP_COLUMNS"), saved_table = match_table, types = ff_types)
 
-# Save to file
-write.csv(match_table, paste0(directory, gsub("(\\..*)*$", "-match_table.csv", file)), row.names = TRUE, na = "")
+# ---- Edit match table ----
 
-####
-## Apply matches
-#types <- get_ff_types(locale = "en")
-#match_table <- as.data.table(read.csv(paste0(directory, gsub("(\\..*)*$", "-match_table.csv", file)), stringsAsFactors = FALSE, row.names = 1, na.strings = ""))
-dt <- apply_ff_type_matches(dt, types, match_table, drop = FALSE)
+# Assign grouping to Falling Fruit type(s) by entering type string(s) into the "types" column (e.g. "14, 183", "14: Apple [Malus pumila]", "Apple [Malus pumila]"). If the type does not already exist, a new type will be created on import. Tag a grouping as unverified by entering 'x' into the "unverified" column.
+match_table <- as.data.table(fix(match_table))[, types := fruitr::normalize_type_strings(types, ff_types)]
 
-####
-## Format fields
+# ---- Write / Read match table ----
 
-# Notes
-dt[, notes := Map(list, NA)]
+match_file <- gsub("(\\..*)*$", "-match_table.csv", file)
+write.csv(match_table, match_file, row.names = FALSE)
+# match_table <- data.table::as.data.table(read.csv(match_file, stringsAsFactors = FALSE))
 
-# Author
-dt[, author := "AUTHOR"]
+# ---- Apply matches ----
 
-# Access
-dt[, access := NA]
+dt <- fruitr::apply_match_table(dt, match_table, drop = FALSE)
 
-# Address
+# ---- Additional fields ----
+
+## Address (required if lng, lat are not defined)
+# Full address (street address, city, state/province, zip code, country), geocoded to coordinates during import.
 dt[, address := NA]
 
-####
-## Aggregate overlapping locations
-fdt <- aggregate_locations_by_position(dt, sep = ". ")
+## Author (optional)
+# Author name, as displayed on the map.
+dt[, author := "AUTHOR"]
 
-####
-## Export
-out_file <- paste0(directory, gsub("(\\..*)*$", "-FINAL.csv", file))
-write_locations_for_import(fdt, out_file, drop_extra_fields = TRUE)
+## Description (optional)
+# Information displayed in the infobox. <br> (HTML line breaks) are converted to \n (newline) characters. No other markup is currently supported. The intended use for import is type strings of the original data used for matching to Falling Fruit types. Additional information is added to notes (see below).
+# printed_common_names <- if (is.null(common_name_col)) NULL else fruitr::format_strings(dt[, common_name_col, with = FALSE], "printed_common_name")
+common_names <- fruitr::clean_strings(dt[["COMMON_NAME"]]) # or NULL
+scientific_names <- fruitr::clean_strings(dt[["SCIENTIFIC_NAME"]]) # or NULL
+dt[, description := fruitr::build_type_strings(common_names, scientific_names, science_in = "[]")]
+
+## Notes (optional)
+# Vector of strings which are appended to the description by fruitr::build_location_description(). When overlapping locations are merged, the resulting description is: "[nx] type string, [yx] type string, ... + sep + notes (those unique and equal for all)"
+dt[, notes := Map(list, NA)]
+
+## Access (optional)
+# Access status, on a scale from 1 to 5:
+# 1: Source is on the author's property
+# 2: Author had permission from the owner to add the source
+# 3: Source is on public land
+# 4: Source is on private property but overhangs public land
+# 5: Source is on private property (ask before you pick)
+dt[, access := NA]
+
+## Season Start/Stop (optional)
+# Months that harvesting begins and ends, respectively, from 1 (January) to 12 (December).
+dt[, season.start := NA]
+dt[, season.stop := NA]
+
+## No Season (optional)
+# Whether seasonality does not apply. Mark 'x', 't', or 'true' if true, otherwise leave blank.
+dt[, no.season := NA]
+
+## Yield/Quality Rating (optional)
+# Productivity and tastiness, on a scale from 1 to 5:
+# 1: Poor
+# 2: Fair
+# 3: Good
+# 4: Very Good
+# 5: Excellent
+dt[, yield.rating := NA]
+dt[, quality.rating := NA]
+
+## Photo URL (optional)
+# Full path to a photo. A review is created with the photo added during import.
+dt[, photo.url := NA]
+
+# ---- Aggregate overlapping locations ----
+
+mdt <- fruitr::merge_overlapping_locations(dt, note_sep = ". ")
+
+# ---- Write file for import ----
+
+out_file <- file.path(directory, gsub("(\\..*)*$", "-FINAL.csv", file))
+fruitr::write_locations_for_import(mdt, out_file)

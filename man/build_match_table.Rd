@@ -4,25 +4,29 @@
 \alias{build_match_table}
 \title{Built Match Table from Name Matches}
 \usage{
-build_match_table(matches, dt, types = get_ff_types(pending = FALSE),
-  saved_table = NULL)
+build_match_table(dt, matches, join_by = "id", group_by = NULL,
+  types = get_ff_types(pending = FALSE), saved_table = NULL)
 }
 \arguments{
-\item{matches}{Result of \code{\link{match_names_to_ff_types}}.}
+\item{dt}{Locations data.}
 
-\item{dt}{Original data.}
+\item{matches}{Result of \code{\link{match_names_to_ff_types}} with a simplify method selected.}
+
+\item{join_by}{Name of column in \code{dt} to join to \code{matches}.}
+
+\item{group_by}{Name of column(s) in \code{dt} to include and group matches by in output.}
 
 \item{types}{Falling Fruit types, as returned by \code{\link{get_ff_types}}.}
 
 \item{saved_table}{Previous result with saved edits.}
 }
 \description{
-TODO: Support ordered list of name fields.
+Built Match Table from Name Matches
 }
 \seealso{
-Other location import functions: \code{\link{aggregate_locations_by_position}},
-  \code{\link{apply_ff_type_matches}},
+Other location import functions: \code{\link{apply_match_table}},
   \code{\link{match_names_to_ff_types}},
+  \code{\link{merge_overlapping_locations}},
   \code{\link{read_locations}},
   \code{\link{write_locations_for_import}}
 }

@@ -22,10 +22,10 @@ read_locations(file, xy = c("lng", "lat"), id = "id",
 TODO: Check that id field is unique, warn otherwise.
 }
 \seealso{
-Other location import functions: \code{\link{aggregate_locations_by_position}},
-  \code{\link{apply_ff_type_matches}},
+Other location import functions: \code{\link{apply_match_table}},
   \code{\link{build_match_table}},
   \code{\link{match_names_to_ff_types}},
+  \code{\link{merge_overlapping_locations}},
   \code{\link{write_locations_for_import}}
 }
 
