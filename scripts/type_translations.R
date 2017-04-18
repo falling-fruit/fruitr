@@ -244,9 +244,12 @@ common_names[is_scientific_name == TRUE | is_scientific_substring == TRUE, is_va
 # TODO: Move up?
 ff_types[, has_binomial_scientific_name := sapply(strsplit(ff_types$scientific_name, " "), length) == 2 & !grepl("'", scientific_name)]
 ff_types[, has_canonical_scientific_name := !is.na(scientific_name) & !taxonomic_rank %in% c("Polyphyletic", "Multispecies") & !(taxonomic_rank == "Subspecies" && has_binomial_scientific_name)]
-
-# NOTE: "-" equivalent to " " in Google Search
 common_names[, search_name := tolower(gsub("-", " ", name))]
+# NOTE: "-" equivalent to " " in Google Search
+common_names[, display_name := NA_character_]
+common_names[, search_results := NA_integer_]
+common_names[, subset_search_results := NA_integer_]
+
 languages <- c("es", "el", "pl", "pt", "pt-br", "it", "fr", "de")
 languages <- c("pl", "pt", "pt-br", "it", "fr", "de")
 for (i in scientific_names[ff_id >= 1, sort(unique(ff_id))]) {
@@ -348,11 +351,32 @@ cat(json, file = paste0(output_dir, "type_locales.json"))
 ## Human translator
 # human_{locale}_names.csv
 # id | categories | taxonomic_rank | scientific_name | en_name | en_wikipedia_url | {locale}_wikipedia_url | {locale}_names | human_names
-common_names[language == "fr", display_name := normalize_common_name(x = name, x_search = search_name), by = .(language, search_name)]
+locale <- "ar"
+name_field <- paste0(locale, "_names")
+wikipedia_field <- paste0(locale, "_wikipedia_url")
 
-x <- ff_types[order(order)][pending == FALSE, .(categories = paste(expand_category_mask(category_mask), collapse = ", "), taxonomic_rank, scientific_name, en_name = name, en_wikipedia_url = wikipedia_url, fr_name), by = id]
-y <- common_names[is_valid == TRUE & language == "fr"][order(-subset_search_results)][, .(fr_names = list(unique(display_name)), fr_wikipedia_url = ifelse(sum(source == "wikipedia") == 0, NA_character_, build_wiki_url(url = parse_wiki_url(unique(url[source == "wikipedia"]))))), by = ff_id]
+common_names[language == locale, display_name := normalize_common_name(x = name, x_search = search_name), by = .(language, search_name)]
+x <- ff_types[order(order)][pending == FALSE, .(categories = paste(expand_category_mask(category_mask), collapse = ", "), taxonomic_rank, scientific_name, en_name = name, en_wikipedia_url = wikipedia_url), by = id]
+y <- common_names[is_valid == TRUE & language == locale][order(-subset_search_results)][, .(names = list(unique(display_name)), wikipedia_url = ifelse(sum(source == "wikipedia") == 0, NA_character_, build_wiki_url(url = parse_wiki_url(unique(url[source == "wikipedia"]))))), by = ff_id]
 z <- merge(x, y, by.x = "id", by.y = "ff_id", sort = FALSE, all.x = TRUE)
-setnames(z[, temp := paste(na.omit(unique(c(fr_name, unlist(fr_names)))), collapse = ", "), by = id][, fr_name := NULL][, fr_names := NULL][], "temp", "fr_names")
-setcolorder(z, c("id", "categories", "taxonomic_rank", "scientific_name", "en_name", "en_wikipedia_url", "fr_wikipedia_url", "fr_names"))
-write.csv(z, paste0(output_dir, "human_fr_names.csv"), na = "", row.names = FALSE)
+setnames(z[, temp := paste(na.omit(unique(unlist(names))), collapse = ", "), by = id][, names := NULL][], c("temp", "wikipedia_url"), c(name_field, wikipedia_field))
+setcolorder(z, c("id", "categories", "taxonomic_rank", "scientific_name", "en_name", "en_wikipedia_url", wikipedia_field, name_field))
+write.csv(z, paste0(output_dir, "human_", locale, "_names.csv"), na = "", row.names = FALSE)
+
+## Human translator (multiple languages)
+# human_names.csv
+# id | categories | taxonomic_rank | scientific_name | en_names | en_wikipedia | {locale}_wikipedia | {locale}_names | ...
+languages <- c("ar", "ne", "sw", "so", "am", "rn", "fa", "ps", "ti")
+print(Language_codes[ISO639.1 %in% languages, .(ISO639.1, en, autonym)], row.names = FALSE)
+
+common_names[language %in% languages, display_name := normalize_common_name(x = name, x_search = search_name), by = .(language, search_name)]
+x <- ff_types[order(order)][pending == FALSE, .(categories = paste(expand_category_mask(category_mask), collapse = ", "), taxonomic_rank, scientific_name, en_names = paste(unlist(common_names), collapse = ", "), en_wikipedia = wikipedia_url), by = id]
+setcolorder(x, c("id", "categories", "taxonomic_rank", "scientific_name", "en_names", "en_wikipedia"))
+for (locale in languages) {
+  y <- common_names[is_valid == TRUE & language == locale][order(-subset_search_results)][, .(names = list(unique(display_name)), wikipedia = ifelse(sum(source == "wikipedia") == 0, NA_character_, build_wiki_url(url = parse_wiki_url(unique(url[source == "wikipedia"]))))), by = ff_id]
+  x <- merge(x, y, by.x = "id", by.y = "ff_id", sort = FALSE, all.x = TRUE)
+  x[, temp := paste(na.omit(unique(unlist(names))), collapse = ", "), by = id][, names := NULL]
+  setnames(x, c("temp", "wikipedia"), c(paste0(locale, "_names"), paste0(locale, "_wikipedia")))
+}
+
+write.csv(x, paste0(output_dir, "human_", paste(languages, collapse = "_"), "_names.csv"), na = "", row.names = FALSE)
