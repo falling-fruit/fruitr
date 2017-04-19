@@ -161,17 +161,17 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
 #' @param group_by Name of column(s) in \code{dt} to include and group matches by in output.
 #' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
 #' @param saved_table Previous result with saved edits.
-#' @param locale Locale of common name displayed in match results.
+#' @param locales Additional common names displayed in match results.
 #' @export
 #' @family location import functions
-build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, types = get_ff_types(pending = FALSE), saved_table = NULL, locale = "en") {
+build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, types = get_ff_types(pending = FALSE), saved_table = NULL, locales = NULL) {
 
   # Initial match table
   # id | types (exact_strings[1] if length = 1) | fuzzy_strings | exact_matches | ...
   type_ids <- unique(unlist(matches[, .(exact, fuzzy)]))
-  name_field <- switch(locale, scientific = , en = "name", paste(locale, "name", sep = "_"))
+  name_fields <- ifelse(locales == "en", "name", paste(locales, "name", sep = "_"))
   type_strings <- sapply(type_ids, function(type_id) {
-    ff_types[id == type_id, build_type_strings(id, eval(parse(text = name_field)), scientific_name)]
+    types[id == type_id, build_type_strings(id, name, scientific_name, paste(.SD, collapse = ", ")), .SDcols = name_fields]
   })
   selected_strings <- sapply(matches$exact, function(ids) {
     if (length(ids) != 1) "" else type_strings[match(ids, type_ids)]

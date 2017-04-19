@@ -48,16 +48,18 @@ get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "graft
 #' build_type_strings(scientific_names = "Malus domestica")
 #' build_type_strings(scientific_names = "Malus domestica", science_in = "()")
 #' build_type_strings(c(1, 2), c("Apple", "Pear"), c("Malus domestica", "Pyrus communis"))
-build_type_strings <- function(ids = NULL, common_names = NULL, scientific_names = NULL, science_in = "[]") {
+#' build_type_strings(1, "Apple", "Malus pumila", "fr: Pommier commun")
+build_type_strings <- function(ids = NULL, common_names = NULL, scientific_names = NULL, notes = NULL, science_in = "[]") {
 
-  # Replace NA with blank strings
+  # Replace empty with blank strings
   ids[is.empty(ids)] <- ""
   common_names[is.empty(common_names)] <- ""
   scientific_names[is.empty(scientific_names)] <- ""
+  notes[is.empty(notes)] <- ""
 
   # Build type strings
-  type_strings <- clean_strings(paste0(ids, ": ", common_names, " ", substr(science_in, 1, 1), scientific_names, substr(science_in, 2, 2)))
-  type_strings <- gsub("(:\\s*$)|(^: )|", "", type_strings)
+  type_strings <- clean_strings(paste0(ids, ": ", common_names, " ", substr(science_in, 1, 1), scientific_names, substr(science_in, 2, 2), " {", notes, "}"))
+  type_strings <- gsub("(:\\s*$)|(^: )|( \\{\\})", "", type_strings)
   return(type_strings)
 }
 
@@ -69,7 +71,7 @@ build_type_strings <- function(ids = NULL, common_names = NULL, scientific_names
 #' type_strings <- build_type_strings(c(1, 2), c("Apple", "Pear"), c("Malus domestica", "Pyrus communis"))
 #' str(parse_type_strings(type_strings))
 parse_type_strings <- function(type_strings) {
-  substrings <- str_match(type_strings, '^([0-9]+)?[:\\s]*([^\\[]+?)?[\\s]*(\\[(.+)\\])?$')
+  substrings <- stringr::str_match(type_strings, "^([0-9]+)?[:\\s]*([^\\[]{}+?)?[\\s]*(\\[(.+)\\])?[\\s]*(\\{(.+)\\})?$")
   return(Map(list, id = as.numeric(substrings[, 2]), name = substrings[, 3], scientific_name = substrings[, 5]))
 }
 
@@ -100,6 +102,8 @@ match_type_strings <- function(type_strings, types = get_ff_types(pending = FALS
 #' normalize_type_strings(c("14", "[Malus domestica]"), types)
 normalize_type_strings <- function(type_strings, types) {
 
+  # Strip notes
+  type_strings <- gsub("\\s*\\{.*\\}", "", type_strings)
   # Verify type strings
   matched_type_strings <- na.omit(unique(unlist(strsplit(type_strings, "\\s*,\\s*"))))
   matches <- match_type_strings(matched_type_strings, types)
