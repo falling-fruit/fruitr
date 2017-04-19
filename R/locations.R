@@ -307,6 +307,8 @@ merge_overlapping_locations <- function(dt, note_sep = ". ") {
 #' @family location import functions
 write_locations_for_import <- function(dt, file) {
 
+  dt <- data.table::copy(dt)
+
   # Keep only recognized fields
   fields <- gsub(" ", ".", tolower(Location_import_fields))
   if (any(duplicated(intersect(names(dt), fields)))) {
@@ -317,7 +319,7 @@ write_locations_for_import <- function(dt, file) {
   # Add missing fields
   missing_fields <- setdiff(fields, names(dt))
   if (length(missing_fields) > 0) {
-    dt[, missing_fields := NA, with = FALSE]
+    dt[, (missing_fields) := NA]
     data.table::setcolorder(dt, fields)
   }
 
