@@ -260,9 +260,9 @@ merge_overlapping_locations <- function(dt, note_sep = ". ") {
 
   ## Add missing fields
   fields <- gsub(" ", ".", tolower(Location_import_fields))
-  missing_fields <- setdiff(fields, names(dt))
+  missing_fields <- setdiff(c(fields, "notes"), names(dt))
   if (length(missing_fields) > 0) {
-    dt[, missing_fields := NA_character_, with = FALSE]
+    dt[, (missing_fields) := NA_character_]
   }
 
   ## Cast field types
