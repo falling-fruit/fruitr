@@ -157,14 +157,23 @@ normalize_type_strings <- function(type_strings, types) {
 #'
 #' WARNING: Not splitting at commas to support types with commas in them, so type_strings need to be single-type.
 #'
+#' @param type_strings
+#' @param notes
+#' @param sep
+#' @param frequency Whether to include the number of each types in the description.
+#' @param frequency_in
 #' @export
 #' @family Falling Fruit functions
 #' @examples
 #' build_location_description(c("Apple", "Pear", "Pear"), notes = list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 30 m")))
-build_location_description <- function(type_strings, notes = NULL, sep = ". ", frequency_in = "[]") {
-  #frequencies <- summary(as.factor(unlist(strsplit(type_strings, "[ ]*,[ ]*"))))
+#' build_location_description(c("Apple", "Pear", "Pear"), notes = list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 30 m")), frequency = FALSE)
+build_location_description <- function(type_strings, notes = NULL, sep = ". ", frequency = TRUE, frequency_in = "[]") {
   frequencies <- summary(as.factor(unlist(type_strings)))
-  description <- paste0(substr(frequency_in, 1, 1), frequencies, "x", substr(frequency_in, 2, 2), " ", attr(frequencies, "names"), collapse = ", ")
+  if (frequency) {
+    description <- paste0(substr(frequency_in, 1, 1), frequencies, "x", substr(frequency_in, 2, 2), " ", attr(frequencies, "names"), collapse = ", ")
+  } else {
+    description <- paste0(attr(frequencies, "names"), collapse = ", ")
+  }
   notes <- lapply(do.call(Map, c(base::c, notes)), unique_na)
   notes <- notes[!is.empty(notes)]
   if (length(notes) > 0) {
