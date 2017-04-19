@@ -108,7 +108,7 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
     type_names <- types[!is.empty(types[[types_name_field]])][, .(name = unlist(.SD)), by = id, .SDcols = types_name_field]
 
     # Compute distance matrix
-    distance_matrix <- stringdist::stringdistmatrix(given_names$name, type_names$name, ...)
+    distance_matrix <- stringdist::stringdistmatrix(tolower(given_names$name), tolower(type_names$name), ...)
 
     # Build match results
     matches <- lapply(seq_len(nrow(given_names)), function(i) {
