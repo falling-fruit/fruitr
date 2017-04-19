@@ -9,33 +9,40 @@
 #' @param ... Additional parameters passed to \code{\link{read.table}} or \code{\link{rgdal::readOGR}}.
 #' @export
 #' @family location import functions
-read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = CRS("+proj=longlat +ellps=WGS84"), ...) {
+read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), ...) {
 
   # Read file
-  if (grepl("\\.csv", file)) {
-    df <- read.csv(file, stringsAsFactors = FALSE, na.strings = c("", "NA"), ...)
-  } else if (grepl("\\.dbf", file)) {
-    df <- read.dbf(file, as.is = TRUE)
-  } else if (grepl("\\.shp", file)) {
-    shp <- readOGR(file, layer = ogrListLayers(file)[1], ...)
-    shp <- spTransform(shp, CRSobj)
-    df <- shp@data
-    ind <- sapply(df, is.factor)
-    df[ind] <- lapply(df[ind], as.character)
-    df$lng <- shp@coords[, 1]
-    df$lat <- shp@coords[, 2]
-  } else if (grepl("\\.kml", file)) {
-    # get layer name from ogrinfo
-    shp <- readOGR(file, "Features", ...)
-    shp <- spTransform(shp, CRSobj)
-    df <- shp@data
-    ind <- sapply(df, is.factor)
-    df[ind] <- lapply(df[ind], as.character)
-    df$lng <- shp@coords[, 1]
-    df$lat <- shp@coords[, 2]
-  } else {
-    df <- read.table(file, stringsAsFactors = FALSE, ...)
+  file <- tools::file_path_as_absolute(file)
+  read_kml <- function(file, ...) {
+    xml <- xml2::read_xml(file, ...)
+    placemarks <- sapply(xml2::xml_find_all(xml, "//*[local-name() = 'Placemark']"), xml2::as_list)
+    name <- unlist(sapply(placemarks, function(p) if (is.null(p$name)) NA else p$name))
+    description <- unlist(sapply(placemarks, function(p) if (is.null(p$description)) NA else p$description))
+    coordinates <- unlist(sapply(placemarks, function(p) p$Point$coordinates))
+    shp <- as.data.frame(t(sapply(stringr::str_extract_all(coordinates, "([-0-9\\.]+)"), as.numeric)))
+    sp::coordinates(shp) <- names(shp)[1:2]
+    sp::proj4string(shp) <- sp::CRS("+proj=longlat +ellps=WGS84")
+    shp <- sp::spTransform(shp, CRSobj)
+    return(data.frame(name, description, lng = shp@coords[, 1], lat = shp@coords[, 2], stringsAsFactors = FALSE))
   }
+  read_ogr <- function(file, ...) {
+    layers <- rgdal::ogrListLayers(file)
+    read_layer <- function(layer, ...) {
+      shp <- rgdal::readOGR(file, layer, stringsAsFactors = FALSE, ...)
+      shp <- sp::spTransform(shp, CRSobj)
+      df <- shp@data
+      df$lng <- shp@coords[, 1]
+      df$lat <- shp@coords[, 2]
+      transform(df, layer)
+    }
+    return(Reduce(rbind, lapply(layers, read_layer, ...)))
+  }
+  df <- switch(tools::file_ext(file),
+    csv = read.csv(file, stringsAsFactors = FALSE, na.strings = c("", "NA"), ...),
+    dbf = foreign::read.dbf(file, as.is = TRUE, ...),
+    kml = if (length(rgdal::ogrListLayers(file)) > 1) read_kml(file, ...) else read_ogr(file, ...),
+    tryCatch(rgdal::read_ogr(file, ...), error = read.table(file, stringsAsFactors = FALSE, ...))
+  )
 
   # Standardize name of coordinate fiels
   if (all(!is.empty(xy), xy %in% names(df))) {
@@ -53,7 +60,7 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = CRS("
   }
 
   # return
-  return(data.table(df, key = "id"))
+  return(data.table::data.table(df, key = "id"))
 }
 
 #' Match Names Against Falling Fruit Types
@@ -154,15 +161,17 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
 #' @param group_by Name of column(s) in \code{dt} to include and group matches by in output.
 #' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
 #' @param saved_table Previous result with saved edits.
+#' @param locale Locale of common name displayed in match results.
 #' @export
 #' @family location import functions
-build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, types = get_ff_types(pending = FALSE), saved_table = NULL) {
+build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, types = get_ff_types(pending = FALSE), saved_table = NULL, locale = "en") {
 
   # Initial match table
   # id | types (exact_strings[1] if length = 1) | fuzzy_strings | exact_matches | ...
   type_ids <- unique(unlist(matches[, .(exact, fuzzy)]))
+  name_field <- switch(locale, scientific = , en = "name", paste(locale, "name", sep = "_"))
   type_strings <- sapply(type_ids, function(type_id) {
-    types[id == type_id, build_type_strings(id, name, scientific_name)]
+    ff_types[id == type_id, build_type_strings(id, eval(parse(text = name_field)), scientific_name)]
   })
   selected_strings <- sapply(matches$exact, function(ids) {
     if (length(ids) != 1) "" else type_strings[match(ids, type_ids)]
