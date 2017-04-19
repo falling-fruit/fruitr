@@ -244,10 +244,11 @@ apply_match_table <- function(dt, match_table, drop = FALSE) {
 #' NOTE: Multi-type locations may need to be split before being merged (see \code{\link{build_location_description}}).
 #'
 #' @param dt Locations data.
+#' @param frequency Whether to include the number of each types in the description.
 #' @param sep Character string to seperate the retained notes.
 #' @export
 #' @family location import functions
-merge_overlapping_locations <- function(dt, note_sep = ". ") {
+merge_overlapping_locations <- function(dt, frequency = TRUE, note_sep = ". ") {
 
   ## Select position fields
   if (all(c("lat", "lng") %in% names(dt))) {
@@ -281,7 +282,7 @@ merge_overlapping_locations <- function(dt, note_sep = ". ") {
   merged <- dt[, .(
     ids = paste(na.omit(unique(id)), collapse = ", "),
     types = paste(na.omit(unique(types)), collapse = ", "),
-    description = build_location_description(description, notes, sep = note_sep),
+    description = build_location_description(description, notes, sep = note_sep, frequency = frequency),
     # FIXME: May not work for seasons spanning two calendar years.
     season.start = if (all(is.na(season.start))) NA_integer_ else as.integer(min(season.start, na.rm = TRUE)),
     season.stop = if (all(is.na(season.stop))) NA_integer_ else as.integer(max(season.stop, na.rm = TRUE)),
