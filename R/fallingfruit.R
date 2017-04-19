@@ -71,8 +71,12 @@ build_type_strings <- function(ids = NULL, common_names = NULL, scientific_names
 #' type_strings <- build_type_strings(c(1, 2), c("Apple", "Pear"), c("Malus domestica", "Pyrus communis"))
 #' str(parse_type_strings(type_strings))
 parse_type_strings <- function(type_strings) {
-  substrings <- stringr::str_match(type_strings, "^([0-9]+)?[:\\s]*([^\\[]{}+?)?[\\s]*(\\[(.+)\\])?[\\s]*(\\{(.+)\\})?$")
-  return(Map(list, id = as.numeric(substrings[, 2]), name = substrings[, 3], scientific_name = substrings[, 5]))
+  if (length(type_strings)) {
+    substrings <- stringr::str_match(type_strings, "^([0-9]+)?[:\\s]*([^\\[\\{]+?)?[\\s]*(\\[(.+)\\])?[\\s]*(\\{(.+)\\})?$")
+    return(Map(list, id = as.numeric(substrings[, 2]), name = substrings[, 3], scientific_name = substrings[, 5]))
+  } else {
+    return(list())
+  }
 }
 
 #' Match Type Strings to Types
@@ -97,15 +101,19 @@ match_type_strings <- function(type_strings, types = get_ff_types(pending = FALS
 #' @family Falling Fruit functions
 #' @examples
 #' types <- get_ff_types()
-#' type_strings <- c("Apple")
 #' normalize_type_strings("Apple", types)
-#' normalize_type_strings(c("14", "[Malus domestica]"), types)
+#' normalize_type_strings(c("14", "Apple [Malus]"), types)
+#' normalize_type_strings(c("", " ,", NA), types)
+#' normalize_type_strings(c("14: Apple, 14: Apple"), types)
+#' normalize_type_strings("Hello World", types)
 normalize_type_strings <- function(type_strings, types) {
 
   # Strip notes
   type_strings <- gsub("\\s*\\{.*\\}", "", type_strings)
   # Verify type strings
-  matched_type_strings <- na.omit(unique(unlist(strsplit(type_strings, "\\s*,\\s*"))))
+  matched_type_strings <- unique(unlist(strsplit(type_strings, "\\s*,\\s*")))
+  matched_type_strings <- matched_type_strings[!is.empty(matched_type_strings)]
+  if (length(matched_type_strings) < 1) return(rep(NA, length(type_strings)))
   matches <- match_type_strings(matched_type_strings, types)
   n_matches <- sapply(matches, length)
   has_id <- !is.na(sapply(parse_type_strings(matched_type_strings), "[[", "id"))
@@ -130,10 +138,14 @@ normalize_type_strings <- function(type_strings, types) {
 
   # Standardize type strings
   ids <- unlist(matches[n_matches == 1])
-  old_strings <- paste0("(^|, )", quotemeta(matched_type_strings[n_matches == 1]), "($|,)")
-  new_strings <- paste0("\\1", build_type_strings(ids, types[.(ids), name], types[.(ids), scientific_name]), "\\2")
-  names(new_strings) <- old_strings
-  return(str_replace_all(type_strings, new_strings))
+  if (length(ids) > 0) {
+    old_strings <- paste0("(^|,\\s*)", quotemeta(matched_type_strings[n_matches == 1]))
+    new_strings <- paste0("\\1", build_type_strings(ids, types[.(ids), name], types[.(ids), scientific_name]))
+    names(new_strings) <- old_strings
+    return(stringr::str_replace_all(type_strings, new_strings))
+  } else {
+    return(type_strings)
+  }
 }
 
 # Locations --------------
