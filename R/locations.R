@@ -219,7 +219,7 @@ apply_match_table <- function(dt, match_table, drop = FALSE) {
 
   # Verify completeness
   is_empty <- is.empty(match_table$types)
-  if (sum(is_empty) > 0) {
+  if (sum(is_empty) > 0 && !drop) {
     stop("Unassigned match_table rows (empty types field). Use drop = TRUE to drop corresponding dt rows.")
   }
 
