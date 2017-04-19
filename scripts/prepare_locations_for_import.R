@@ -90,7 +90,7 @@ dt[, photo.url := NA]
 
 # ---- Aggregate overlapping locations ----
 
-mdt <- fruitr::merge_overlapping_locations(dt, note_sep = ". ")
+mdt <- fruitr::merge_overlapping_locations(dt, frequency = TRUE, note_sep = ". ")
 
 # ---- Write file for import ----
 
