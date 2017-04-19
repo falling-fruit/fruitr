@@ -13,7 +13,7 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
 
   # Read file
   file <- tools::file_path_as_absolute(file)
-  read_kml <- function(file, ...) {
+  read_kml <- function(file, CRSobj, ...) {
     xml <- xml2::read_xml(file, ...)
     placemarks <- sapply(xml2::xml_find_all(xml, "//*[local-name() = 'Placemark']"), xml2::as_list)
     name <- unlist(sapply(placemarks, function(p) if (is.null(p$name)) NA else p$name))
@@ -25,7 +25,7 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
     shp <- sp::spTransform(shp, CRSobj)
     return(data.frame(name, description, lng = shp@coords[, 1], lat = shp@coords[, 2], stringsAsFactors = FALSE))
   }
-  read_ogr <- function(file, ...) {
+  read_ogr <- function(file, CRSobj, ...) {
     layers <- rgdal::ogrListLayers(file)
     read_layer <- function(layer, ...) {
       shp <- rgdal::readOGR(file, layer, stringsAsFactors = FALSE, ...)
@@ -40,8 +40,8 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
   df <- switch(tools::file_ext(file),
     csv = read.csv(file, stringsAsFactors = FALSE, na.strings = c("", "NA"), ...),
     dbf = foreign::read.dbf(file, as.is = TRUE, ...),
-    kml = if (length(rgdal::ogrListLayers(file)) > 1) read_kml(file, ...) else read_ogr(file, ...),
-    tryCatch(rgdal::read_ogr(file, ...), error = read.table(file, stringsAsFactors = FALSE, ...))
+    kml = if (length(rgdal::ogrListLayers(file)) > 1) read_kml(file, CRSobj, ...) else read_ogr(file, CRSobj, ...),
+    tryCatch(read_ogr(file, CRSobj, ...), error = function(e) read.table(file, stringsAsFactors = FALSE, ...))
   )
 
   # Standardize name of coordinate fiels
