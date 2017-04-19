@@ -259,6 +259,7 @@ merge_overlapping_locations <- function(dt, note_sep = ". ") {
   }
 
   ## Add missing fields
+  dt <- data.table::copy(dt)
   fields <- gsub(" ", ".", tolower(Location_import_fields))
   missing_fields <- setdiff(c(fields, "notes"), names(dt))
   if (length(missing_fields) > 0) {
