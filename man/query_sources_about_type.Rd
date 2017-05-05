@@ -14,4 +14,3 @@ TODO: Seach by scientific synonyms if no results found.
 ff_types <- get_ff_types(urls = TRUE)
 query_sources_about_type(ff_types[id == 14], sources = "eol")
 }
-

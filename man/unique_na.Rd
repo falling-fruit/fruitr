@@ -25,4 +25,3 @@ Other helper functions: \code{\link{ch1903_to_wgs84}},
   \code{\link{replace_values_in_list}},
   \code{\link{subset_search_results}}
 }
-

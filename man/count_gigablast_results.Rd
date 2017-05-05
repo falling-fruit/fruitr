@@ -15,4 +15,3 @@ count_gigablast_results("'Malus domestica'+'Apfel'")
 \seealso{
 Other web search functions: \code{\link{count_google_cs_results}}
 }
-

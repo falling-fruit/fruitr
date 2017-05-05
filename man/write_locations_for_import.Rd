@@ -21,4 +21,3 @@ Other location import functions: \code{\link{apply_match_table}},
   \code{\link{merge_overlapping_locations}},
   \code{\link{read_locations}}
 }
-

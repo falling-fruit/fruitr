@@ -21,4 +21,3 @@ Other iNaturalist functions: \code{\link{get_inaturalist_page}},
   \code{\link{get_inaturalist_search}},
   \code{\link{parse_inaturalist_page}}
 }
-

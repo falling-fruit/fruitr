@@ -4,10 +4,12 @@
 \alias{merge_overlapping_locations}
 \title{Aggregate Locations by Position}
 \usage{
-merge_overlapping_locations(dt, note_sep = ". ")
+merge_overlapping_locations(dt, frequency = TRUE, note_sep = ". ")
 }
 \arguments{
 \item{dt}{Locations data.}
+
+\item{frequency}{Whether to include the number of each types in the description.}
 
 \item{sep}{Character string to seperate the retained notes.}
 }
@@ -21,4 +23,3 @@ Other location import functions: \code{\link{apply_match_table}},
   \code{\link{read_locations}},
   \code{\link{write_locations_for_import}}
 }
-

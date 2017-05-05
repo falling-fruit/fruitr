@@ -23,4 +23,3 @@ Other Falling Fruit functions: \code{\link{build_location_description}},
   \code{\link{normalize_type_strings}},
   \code{\link{parse_type_strings}}
 }
-

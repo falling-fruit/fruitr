@@ -26,4 +26,4 @@ Imports:
     RCurl
 Remotes:
     github::rstats-db/RPostgres
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

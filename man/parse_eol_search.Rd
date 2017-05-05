@@ -22,4 +22,3 @@ Other EOL functions: \code{\link{get_eol_page}},
   \code{\link{get_eol_search}},
   \code{\link{parse_eol_page}}
 }
-

@@ -20,4 +20,3 @@ Other cluster functions: \code{\link{expand_geohashes}},
   \code{\link{latlng_to_geohashes}},
   \code{\link{latlng_to_gridcells}}
 }
-

@@ -157,11 +157,6 @@ normalize_type_strings <- function(type_strings, types) {
 #'
 #' WARNING: Not splitting at commas to support types with commas in them, so type_strings need to be single-type.
 #'
-#' @param type_strings
-#' @param notes
-#' @param sep
-#' @param frequency Whether to include the number of each types in the description.
-#' @param frequency_in
 #' @export
 #' @family Falling Fruit functions
 #' @examples

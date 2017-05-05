@@ -5,7 +5,7 @@
 \title{Build Type Strings}
 \usage{
 build_type_strings(ids = NULL, common_names = NULL,
-  scientific_names = NULL, science_in = "[]")
+  scientific_names = NULL, notes = NULL, science_in = "[]")
 }
 \description{
 Build Type Strings
@@ -15,6 +15,7 @@ build_type_strings(1, "Apple")
 build_type_strings(scientific_names = "Malus domestica")
 build_type_strings(scientific_names = "Malus domestica", science_in = "()")
 build_type_strings(c(1, 2), c("Apple", "Pear"), c("Malus domestica", "Pyrus communis"))
+build_type_strings(1, "Apple", "Malus pumila", "fr: Pommier commun")
 }
 \seealso{
 Other Falling Fruit functions: \code{\link{build_location_description}},
@@ -24,4 +25,3 @@ Other Falling Fruit functions: \code{\link{build_location_description}},
   \code{\link{normalize_type_strings}},
   \code{\link{parse_type_strings}}
 }
-

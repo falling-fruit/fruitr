@@ -5,7 +5,7 @@
 \title{Load Locations Dataset}
 \usage{
 read_locations(file, xy = c("lng", "lat"), id = "id",
-  CRSobj = CRS("+proj=longlat +ellps=WGS84"), ...)
+  CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), ...)
 }
 \arguments{
 \item{file}{The path of the file to be read.}
@@ -16,10 +16,10 @@ read_locations(file, xy = c("lng", "lat"), id = "id",
 
 \item{CRSobj}{Coordinate reference system (\code{\link{sp::CRS}}).}
 
-\item{...}{Additional parameters passed to \code{\link{read.table}} or \code{\link{rgdal::readOGR}}.}
+\item{...}{Additional parameters passed to \code{\link{data.table::fread}} (delimited files), \code{\link{rgdal::readOGR}} (spatial data), or \code{\link{xml2::read_xml}} (kml files).}
 }
 \description{
-TODO: Check that id field is unique, warn otherwise.
+Load Locations Dataset
 }
 \seealso{
 Other location import functions: \code{\link{apply_match_table}},
@@ -28,4 +28,3 @@ Other location import functions: \code{\link{apply_match_table}},
   \code{\link{merge_overlapping_locations}},
   \code{\link{write_locations_for_import}}
 }
-

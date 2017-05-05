@@ -5,7 +5,8 @@
 \title{Built Match Table from Name Matches}
 \usage{
 build_match_table(dt, matches, join_by = "id", group_by = NULL,
-  types = get_ff_types(pending = FALSE), saved_table = NULL)
+  types = get_ff_types(pending = FALSE), saved_table = NULL,
+  locales = NULL)
 }
 \arguments{
 \item{dt}{Locations data.}
@@ -14,11 +15,13 @@ build_match_table(dt, matches, join_by = "id", group_by = NULL,
 
 \item{join_by}{Name of column in \code{dt} to join to \code{matches}.}
 
-\item{group_by}{Name of column(s) in \code{dt} to include and group matches by in output.}
+\item{group_by}{Name of column(s) in \code{dt} to include and group matches by in output. If specified, rows are sorted by these columns, rows are returned sorted by descending count.}
 
 \item{types}{Falling Fruit types, as returned by \code{\link{get_ff_types}}.}
 
 \item{saved_table}{Previous result with saved edits.}
+
+\item{locales}{Additional common names displayed in match results.}
 }
 \description{
 Built Match Table from Name Matches
@@ -30,4 +33,3 @@ Other location import functions: \code{\link{apply_match_table}},
   \code{\link{read_locations}},
   \code{\link{write_locations_for_import}}
 }
-

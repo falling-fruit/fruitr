@@ -27,4 +27,3 @@ Other helper functions: \code{\link{ch1903_to_wgs84}},
   \code{\link{subset_search_results}},
   \code{\link{unique_na}}
 }
-

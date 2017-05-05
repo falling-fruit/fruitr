@@ -21,4 +21,3 @@ Other cluster functions: \code{\link{expand_geohashes}},
   \code{\link{gridcells_to_geohashes}},
   \code{\link{itostr}}, \code{\link{latlng_to_geohashes}}
 }
-

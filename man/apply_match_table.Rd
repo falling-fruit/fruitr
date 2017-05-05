@@ -4,7 +4,8 @@
 \alias{apply_match_table}
 \title{Apply Match Table to Locations}
 \usage{
-apply_match_table(dt, match_table, drop = FALSE)
+apply_match_table(dt, match_table, drop = FALSE,
+  types = get_ff_types(pending = FALSE))
 }
 \arguments{
 \item{dt}{Locations data.}
@@ -12,6 +13,8 @@ apply_match_table(dt, match_table, drop = FALSE)
 \item{match_table}{Type assignments, as returned by \code{\link{get_ff_types}}.}
 
 \item{drop}{Whether to drop unassigned rows in \code{dt}.}
+
+\item{Falling}{Fruit types, as returned by \code{\link{get_ff_types}}.}
 }
 \description{
 Apply Match Table to Locations
@@ -23,4 +26,3 @@ Other location import functions: \code{\link{build_match_table}},
   \code{\link{read_locations}},
   \code{\link{write_locations_for_import}}
 }
-
