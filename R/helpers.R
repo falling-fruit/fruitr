@@ -175,7 +175,7 @@ clean_strings <- function(x) {
 
   # Empty substitutions
   remove <- paste(
-    "(?:^|\\s*)NA(?:$|\\s*)", # NAs in string
+    "(?:^|\\s+)(NA|N\\/A)(?:$|\\s+)", # NAs in string
     "\\(\\s*\\)|\\[\\s*\\]", # empty parentheses and brackets
     "'(\\s*'*\\s*)'", # empty quotes
     "^\\s+|\\s+$|\\s+(?=[\\.|,])", # trailing white space
