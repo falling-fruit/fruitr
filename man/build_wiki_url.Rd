@@ -21,4 +21,3 @@ Other Wiki functions: \code{\link{get_wiki_page}},
   \code{\link{parse_wikipedia_page}},
   \code{\link{parse_wikispecies_page}}
 }
-

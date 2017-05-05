@@ -11,4 +11,3 @@ capitalize_words(x, strict = FALSE, first = FALSE)
 Capitalize Words
 Skips numbers at start of words (e.g. 3-in-1 pear).
 }
-

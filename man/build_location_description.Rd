@@ -5,7 +5,7 @@
 \title{Build Location Description}
 \usage{
 build_location_description(type_strings, notes = NULL, sep = ". ",
-  frequency_in = "[]")
+  frequency = TRUE, frequency_in = "[]")
 }
 \description{
 Builds a description from its inputs:
@@ -16,6 +16,7 @@ WARNING: Not splitting at commas to support types with commas in them, so type_s
 }
 \examples{
 build_location_description(c("Apple", "Pear", "Pear"), notes = list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 30 m")))
+build_location_description(c("Apple", "Pear", "Pear"), notes = list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 30 m")), frequency = FALSE)
 }
 \seealso{
 Other Falling Fruit functions: \code{\link{build_type_strings}},
@@ -25,4 +26,3 @@ Other Falling Fruit functions: \code{\link{build_type_strings}},
   \code{\link{normalize_type_strings}},
   \code{\link{parse_type_strings}}
 }
-

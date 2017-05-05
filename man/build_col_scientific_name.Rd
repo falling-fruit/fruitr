@@ -21,4 +21,3 @@ Other COL functions: \code{\link{get_col_page}},
   \code{\link{parse_col_page}},
   \code{\link{parse_col_search}}
 }
-

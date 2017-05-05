@@ -19,4 +19,3 @@ Other Wiki functions: \code{\link{build_wiki_url}},
   \code{\link{parse_wikipedia_page}},
   \code{\link{parse_wikispecies_page}}
 }
-

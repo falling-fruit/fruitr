@@ -9,4 +9,3 @@
 The fruitr package provides two categories of functions:
 functions for species common name translations and functions for location data import.
 }
-

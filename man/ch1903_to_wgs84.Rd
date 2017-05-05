@@ -22,4 +22,3 @@ Other helper functions: \code{\link{clean_strings}},
   \code{\link{subset_search_results}},
   \code{\link{unique_na}}
 }
-

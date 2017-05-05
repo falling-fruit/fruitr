@@ -9,4 +9,3 @@ quotemeta(string)
 \description{
 Quote Metacharacters
 }
-

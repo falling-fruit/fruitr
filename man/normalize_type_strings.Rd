@@ -11,9 +11,11 @@ Normalize Type Strings
 }
 \examples{
 types <- get_ff_types()
-type_strings <- c("Apple")
 normalize_type_strings("Apple", types)
-normalize_type_strings(c("14", "[Malus domestica]"), types)
+normalize_type_strings(c("14", "Apple [Malus]"), types)
+normalize_type_strings(c("", " ,", NA), types)
+normalize_type_strings(c("14: Apple, 14: Apple"), types)
+normalize_type_strings("Hello World", types)
 }
 \seealso{
 Other Falling Fruit functions: \code{\link{build_location_description}},
@@ -23,4 +25,3 @@ Other Falling Fruit functions: \code{\link{build_location_description}},
   \code{\link{match_type_strings}},
   \code{\link{parse_type_strings}}
 }
-

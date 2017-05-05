@@ -33,4 +33,3 @@ Other location import functions: \code{\link{apply_match_table}},
   \code{\link{read_locations}},
   \code{\link{write_locations_for_import}}
 }
-

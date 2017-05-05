@@ -20,4 +20,3 @@ Other COL functions: \code{\link{build_col_scientific_name}},
   \code{\link{get_col_page}}, \code{\link{get_col_search}},
   \code{\link{parse_col_search}}
 }
-
