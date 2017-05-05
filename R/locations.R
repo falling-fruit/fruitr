@@ -4,7 +4,7 @@
 #' @param xy Names of the x and y coordinate fields (renamed to "lng", "lat" respectively).
 #' @param id Name of the id field (renamed to "id").
 #' @param CRSobj Coordinate reference system (\code{\link{sp::CRS}}).
-#' @param ... Additional parameters passed to \code{\link{read.table}} or \code{\link{rgdal::readOGR}}.
+#' @param ... Additional parameters passed to \code{\link{data.table::fread}} (delimited files), \code{\link{rgdal::readOGR}} (spatial data), or \code{\link{xml2::read_xml}} (kml files).
 #' @export
 #' @family location import functions
 read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), ...) {
@@ -36,10 +36,9 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
     return(Reduce(rbind, lapply(layers, read_layer, ...)))
   }
   df <- switch(tools::file_ext(file),
-    csv = read.csv(file, stringsAsFactors = FALSE, na.strings = c("", "NA"), ...),
     dbf = foreign::read.dbf(file, as.is = TRUE, ...),
     kml = if (length(rgdal::ogrListLayers(file)) > 1) read_kml(file, CRSobj, ...) else read_ogr(file, CRSobj, ...),
-    tryCatch(read_ogr(file, CRSobj, ...), error = function(e) read.table(file, stringsAsFactors = FALSE, ...))
+    tryCatch(read_ogr(file, CRSobj, ...), error = function(e) data.table::fread(file, stringsAsFactors = FALSE, na.strings = c("", "NA"), ...))
   )
 
   # Standardize coordinate fields
