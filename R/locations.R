@@ -1,7 +1,5 @@
 #' Load Locations Dataset
 #'
-#' TODO: Check that id field is unique, warn otherwise.
-#'
 #' @param file The path of the file to be read.
 #' @param xy Names of the x and y coordinate fields (renamed to "lng", "lat" respectively).
 #' @param id Name of the id field (renamed to "id").
@@ -59,6 +57,9 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
     df$id <- 1:nrow(df)
   }
   df$id <- as.character(df$id)
+  if (any(duplicated(df$id))) {
+    warning("ID field contains duplicates.")
+  }
 
   # return
   return(data.table::data.table(df, key = "id"))
