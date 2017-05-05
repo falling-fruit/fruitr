@@ -44,7 +44,7 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
     tryCatch(read_ogr(file, CRSobj, ...), error = function(e) read.table(file, stringsAsFactors = FALSE, ...))
   )
 
-  # Standardize name of coordinate fiels
+  # Standardize coordinate fields
   if (all(!is.empty(xy), xy %in% names(df))) {
     names(df)[names(df) == xy[1]] = "lng"
     names(df)[names(df) == xy[2]] = "lat"
@@ -52,12 +52,13 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
     warning('No coordinates available!')
   }
 
-  # Standardize name of id field
+  # Standardize id field
   if (all(!is.empty(id), id %in% names(df))) {
     names(df)[names(df) == id] = "id"
   } else {
     df$id <- 1:nrow(df)
   }
+  df$id <- as.character(df$id)
 
   # return
   return(data.table::data.table(df, key = "id"))
@@ -158,7 +159,7 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
 #' @param dt Locations data.
 #' @param matches Result of \code{\link{match_names_to_ff_types}} with a simplify method selected.
 #' @param join_by Name of column in \code{dt} to join to \code{matches}.
-#' @param group_by Name of column(s) in \code{dt} to include and group matches by in output.
+#' @param group_by Name of column(s) in \code{dt} to include and group matches by in output. If specified, rows are sorted by these columns, rows are returned sorted by descending count.
 #' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
 #' @param saved_table Previous result with saved edits.
 #' @param locales Additional common names displayed in match results.
@@ -171,7 +172,7 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
   type_ids <- unique(unlist(matches[, .(exact, fuzzy)]))
   name_fields <- ifelse(locales == "en", "name", paste(locales, "name", sep = "_"))
   type_strings <- sapply(type_ids, function(type_id) {
-    types[id == type_id, build_type_strings(id, name, scientific_name, paste(.SD, collapse = ", ")), .SDcols = name_fields]
+    types[id == type_id, build_type_strings(id, name, scientific_name, paste(mapply(paste, locales, .SD, sep = ": "), collapse = ", ")), .SDcols = name_fields]
   })
   selected_strings <- sapply(matches$exact, function(ids) {
     if (length(ids) != 1) "" else type_strings[match(ids, type_ids)]
@@ -188,10 +189,13 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
   dt.group_by <- paste("dt", group_by, sep = ".")
   dt_subset <- dt[, union(join_by, group_by), with = FALSE]
   data.table::setnames(dt_subset, group_by, dt.group_by)
-  merged <- merge(dt_subset, match_temp, by.x = join_by, by.y = "id", all = FALSE)
+  merged <- data.table::merge(dt_subset, match_temp, by.x = join_by, by.y = "id", all = FALSE)
 
   # Group by grouping columns
   match_table <- merged[, .(unverified = "", count = .N, id = paste(id, collapse = ",")), by = c(dt.group_by, "types", "fuzzy_matches", "exact_matches")][order(count, decreasing = TRUE)]
+  if (!is.null(group_by)) {
+    data.table::setorderv(match_table, group_by)
+  }
 
   # Update from saved table
   if (!is.null(saved_table)) {
@@ -213,20 +217,23 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
 #' @param dt Locations data.
 #' @param match_table Type assignments, as returned by \code{\link{get_ff_types}}.
 #' @param drop Whether to drop unassigned rows in \code{dt}.
+#' @param Falling Fruit types, as returned by \code{\link{get_ff_types}}.
 #' @export
 #' @family location import functions
-apply_match_table <- function(dt, match_table, drop = FALSE) {
+apply_match_table <- function(dt, match_table, drop = FALSE, types = get_ff_types(pending = FALSE)) {
+
+  # Normalize (and validate) types
+  match_table$types <- normalize_type_strings(match_table$types, types)
 
   # Verify completeness
-  is_empty <- is.empty(match_table$types)
-  if (sum(is_empty) > 0 && !drop) {
+  if (any(is.empty(match_table$types)) && !drop) {
     stop("Unassigned match_table rows (empty types field). Use drop = TRUE to drop corresponding dt rows.")
   }
 
   # Assign types
-  id_lists <- sapply(strsplit(match_table$id, split = "\\s*,\\s*"), as.numeric)
-  temp <- match_table[rep(1:.N, sapply(id_lists, length))][order(unlist(id_lists))]
-  merged <- cbind(dt, temp[, .(types, unverified)])
+  id_lists <- strsplit(match_table$id, split = "\\s*,\\s*")
+  temp <- match_table[rep(1:.N, sapply(id_lists, length))][, id := unlist(id_lists)]
+  merged <- merge(dt, temp[, .(id, types)], by = "id")
 
   # Drop unassigned rows
   if (drop) {
