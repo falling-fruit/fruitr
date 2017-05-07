@@ -200,7 +200,7 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
   # Group by grouping columns
   match_table <- merged[, .(unverified = "", count = .N, id = paste(id, collapse = ",")), by = c(dt.group_by, "types", "fuzzy_matches", "exact_matches")][order(count, decreasing = TRUE)]
   if (!is.null(group_by)) {
-    data.table::setorderv(match_table, group_by)
+    data.table::setorderv(match_table, paste("dt", group_by, sep = "."))
   }
 
   # Update from saved table
