@@ -4,10 +4,10 @@
 #' @param xy Names of the x and y coordinate fields (renamed to "lng", "lat" respectively).
 #' @param id Name of the id field (renamed to "id").
 #' @param CRSobj Coordinate reference system (\code{\link{sp::CRS}}).
-#' @param ... Additional parameters passed to \code{\link{data.table::fread}} (delimited files), \code{\link{rgdal::readOGR}} (spatial data), or \code{\link{xml2::read_xml}} (kml files).
+#' @param ... Additional parameters passed to \code{\link{data.table::fread}} (delimited files), \code{\link{rgdal::readOGR}} (spatial data), or \code{\link{xml2::read_xml}} (certain kml files).
 #' @export
 #' @family location import functions
-read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), ...) {
+read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), stringsAsFactors = FALSE, na.strings = c("", "NA", "N/A", "na", "n/a"), ...) {
 
   # Read file
   file <- tools::file_path_as_absolute(file)
@@ -21,12 +21,12 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
     sp::coordinates(shp) <- names(shp)[1:2]
     sp::proj4string(shp) <- sp::CRS("+proj=longlat +ellps=WGS84")
     shp <- sp::spTransform(shp, CRSobj)
-    return(data.frame(name, description, lng = shp@coords[, 1], lat = shp@coords[, 2], stringsAsFactors = FALSE))
+    return(data.frame(name, description, lng = shp@coords[, 1], lat = shp@coords[, 2], stringsAsFactors = stringsAsFactors))
   }
   read_ogr <- function(file, CRSobj, ...) {
     layers <- rgdal::ogrListLayers(file)
     read_layer <- function(layer, ...) {
-      shp <- rgdal::readOGR(file, layer, stringsAsFactors = FALSE, ...)
+      shp <- rgdal::readOGR(file, layer, stringsAsFactors = stringsAsFactors, ...)
       shp <- sp::spTransform(shp, CRSobj)
       df <- shp@data
       df$lng <- shp@coords[, 1]
@@ -36,9 +36,9 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
     return(Reduce(rbind, lapply(layers, read_layer, ...)))
   }
   df <- switch(tools::file_ext(file),
-    dbf = foreign::read.dbf(file, as.is = TRUE, ...),
+    dbf = foreign::read.dbf(file, as.is = !stringsAsFactors, ...),
     kml = if (length(rgdal::ogrListLayers(file)) > 1) read_kml(file, CRSobj, ...) else read_ogr(file, CRSobj, ...),
-    tryCatch(read_ogr(file, CRSobj, ...), error = function(e) data.table::fread(file, stringsAsFactors = FALSE, na.strings = c("", "NA"), ...))
+    tryCatch(data.table::fread(file, stringsAsFactors = stringsAsFactors, na.strings = na.strings, ...), error = function(e) read_ogr(file, CRSobj, ...))
   )
 
   # Standardize coordinate fields
