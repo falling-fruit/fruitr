@@ -81,7 +81,9 @@ Where the matched Falling Fruit types are displayed using the following conventi
 
 ### Edit type assignments
 
-Assign groupings to Falling Fruit type(s) by filling in the `types` column with Falling Fruit types following the format above (e.g. `114`, `114: Apple [Malus]`). If the type does not already exist (e.g. `New common [New scientific]`); a new type will be created on import. Tag a grouping as unverified by entering `x` into the `unverified` column. You can record new names by appending them using the format `{locale: name}` (e.g. `14: Apple [Malus pumila] {scientific: Malus paradisiaca, en: Paradise apple, Common apple}`), although this is currrently unused.
+Assign groupings to Falling Fruit type(s) by filling in the `types` column with Falling Fruit types following the format above (e.g. `114`, `114: Apple [Malus]`). If the type does not already exist (e.g. `New common [New scientific]`), a new type will be created on import. Tag a grouping as unverified by entering `x` into the `unverified` column. You can record new names by appending them using the format `{locale: name}` (e.g. `14: Apple [Malus pumila] {scientific: Malus paradisiaca, en: Paradise apple, Common apple}`), although this is currrently unused.
+
+As needed, reference the Falling Fruit type taxonomy at [fallingfruit.org/types](https://fallingfruit.org/types) (admin-only).
 
 For the example above, a completed table might look like this:
 
@@ -225,3 +227,5 @@ Finally, format the data for import and write it to a file with `fruitr::write_l
 out_file <- gsub("(\\..*)*$", "-IMPORT.csv", file)
 fruitr::write_locations_for_import(mdt, out_file)
 ```
+
+Submit the file for import at [fallingfruit.org/locations/import](https://fallingfruit.org/locations/import) (admin-only), or email the file and ancillary information (original URL and description of the dataset) directly to [ethan@fallingfruit.org](mailto:ethan@fallingfruit.org).
