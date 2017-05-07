@@ -54,7 +54,8 @@ If you have unexpected results, report the issue, edit the function and make a p
 Match names against Falling Fruit types by providing a list of named vectors, one for each locale. For example, if the names prepared above were scientific names (`"scientific"`) and English common names (`"en"`):
 
 ```R
-matches <- fruitr::match_names_to_ff_types(names = list("scientific" = matched_scientific_names, "en" = matched_common_names), ids = dt$id, simplify = "first", max_distance = 3, n_nearest = 2)
+locales <- list("scientific" = matched_scientific_names, "en" = matched_common_names)
+matches <- fruitr::match_names_to_ff_types(locales, ids = dt$id, simplify = "first", max_distance = 3, n_nearest = 2)
 ```
 
 `fruitr::match_names_to_ff_types()` returns a table of exact and fuzzy matches (to all available canonical or synonym names) as Falling Fruit type ids. To convert these to a human-readable form, use `fruitr::build_match_table()`:
@@ -77,7 +78,7 @@ The result is a table with all unique combinations of the columns listed in `gro
 
 Where the matched Falling Fruit types are displayed using the following convention:
 
-`<id>: <Canonical english name> [<Canonical scientific name>]`
+`<id>: <Canonical english name> [<Canonical scientific name>] {locale: name}`
 
 ### Edit type assignments
 
