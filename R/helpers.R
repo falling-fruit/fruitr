@@ -228,7 +228,8 @@ format_strings <- function(x, types = "", clean = TRUE) {
   }
   if (any(c("printed_scientific_name", "matched_scientific_name") %in% types)) {
     x <- gsub("\\s*\\([^\\)]*\\)|,.*$", "", x) # clear parentheses or after first comma
-    x <- gsub("^([A-Z].*?)\\s([A-Z].*)", "\\1", x, perl = TRUE)  # clear after second capital letter (if preceded by space)
+    x <- gsub("\\s+X\\s+", " x ", x) # lowercase hybrid x
+    x <- gsub("(\\s*([A-Z]{1}[a-z]+\\.*|&)(\\s*|$))+$", "", x, perl = TRUE) # clear trailing capitalized words and abbreviations
     x <- gsub("(auct.|auctt.)+\\s(nec|non|mult.)*", "", x, perl = TRUE) # clear auctorum notation
   }
   if ("printed_scientific_name" %in% types) {
