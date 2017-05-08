@@ -5,7 +5,8 @@
 \title{Load Locations Dataset}
 \usage{
 read_locations(file, xy = c("lng", "lat"), id = "id",
-  CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), ...)
+  CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), stringsAsFactors = FALSE,
+  na.strings = c("", "NA", "N/A", "na", "n/a"), ...)
 }
 \arguments{
 \item{file}{The path of the file to be read.}
@@ -16,7 +17,7 @@ read_locations(file, xy = c("lng", "lat"), id = "id",
 
 \item{CRSobj}{Coordinate reference system (\code{\link{sp::CRS}}).}
 
-\item{...}{Additional parameters passed to \code{\link{data.table::fread}} (delimited files), \code{\link{rgdal::readOGR}} (spatial data), or \code{\link{xml2::read_xml}} (kml files).}
+\item{...}{Additional parameters passed to \code{\link{data.table::fread}} (delimited files), \code{\link{rgdal::readOGR}} (spatial data), or \code{\link{xml2::read_xml}} (certain kml files).}
 }
 \description{
 Load Locations Dataset

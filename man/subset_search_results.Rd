@@ -32,8 +32,10 @@ subset_search_results(strings, results) # 7, 2, 10, 3
 Other helper functions: \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
   \code{\link{expand_list_by_split}},
-  \code{\link{format_strings}}, \code{\link{is.empty}},
-  \code{\link{melt_by_listcol}}, \code{\link{na.remove}},
+  \code{\link{format_addresses}},
+  \code{\link{format_scientific_names}},
+  \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
+  \code{\link{na.remove}},
   \code{\link{normalize_language}},
   \code{\link{replace_values_in_list}},
   \code{\link{unique_na}}

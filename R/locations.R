@@ -79,7 +79,7 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
 
   # Check names
   names <- names[!is.empty(names)]
-  supported_locales <- c("en", gsub("_name$", "", names(types)[grepl("^[a-z_]+_name$", names(types))]))
+  supported_locales <- c("cultivar", "en", gsub("_name$", "", names(types)[grepl("^[a-z_]+_name$", names(types))]))
   names <- names[intersect(names(names), supported_locales)]
   n_rows <- unique(sapply(names, length))
   if (length(n_rows) != 1 | n_rows == 0) {
@@ -103,13 +103,14 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
     # Prepare corresponding type names
     types_name_field <- switch(locale,
       scientific = "matched_scientific_names",
-      en = "matched_common_names",
+      cultivar = "matched_cultivars",
+      en = "common_names",
       paste(locale, "name", sep = "_")
     )
     type_names <- types[!is.empty(types[[types_name_field]])][, .(name = unlist(.SD)), by = id, .SDcols = types_name_field]
 
     # Compute distance matrix
-    distance_matrix <- stringdist::stringdistmatrix(tolower(given_names$name), tolower(type_names$name), ...)
+    distance_matrix <- stringdist::stringdistmatrix(tolower(given_names$name), tolower(type_names$name))
 
     # Build match results
     matches <- lapply(seq_len(nrow(given_names)), function(i) {
@@ -143,14 +144,19 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
   } else {
     merged <- data.table::rbindlist(match_tables)
     expanded <- merged[rep(seq_len(nrow(merged)), sapply(id, length))][, id := unlist(merged$id)]
+    # NOTE: Strange CHARSXP errors appearing on matches, using ifelse() to avoid
     matches <- switch(simplify[1],
-      first = expanded[, .(exact = exact[1], fuzzy = fuzzy[1]), by = id],
-      last = expanded[, .(exact = exact[.N], fuzzy = fuzzy[.N]), by = id],
+      first = expanded[, .(
+        exact = ifelse(all(is.empty(exact)), list(integer()), exact[!is.empty(exact)][1]),
+        fuzzy = ifelse(all(is.empty(fuzzy)), list(integer()), fuzzy[!is.empty(fuzzy)][1])), by = id],
+      last = expanded[, .(
+        exact = ifelse(all(is.empty(exact)), list(integer()), tail(exact[!is.empty(exact)], 1)),
+        fuzzy = ifelse(all(is.empty(fuzzy)), list(integer()), tail(fuzzy[!is.empty(fuzzy)], 1))), by = id],
       union = expanded[, .(exact = list(Reduce(union, exact)), fuzzy = list(Reduce(union, fuzzy))), by = id],
       intersection = expanded[, .(exact = list(Reduce(intersect, exact)), fuzzy = list(Reduce(intersect, fuzzy))), by = id],
       stop(paste("Unsupported simplify:", simplify[1]))
     )
-    return(matches)
+    return(matches[, .(exact, fuzzy = ifelse(all(fuzzy %in% exact), list(integer()), fuzzy[!fuzzy %in% exact])), by = id])
   }
 }
 
@@ -170,7 +176,7 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
   # Initial match table
   # id | types (exact_strings[1] if length = 1) | fuzzy_strings | exact_matches | ...
   type_ids <- unique(unlist(matches[, .(exact, fuzzy)]))
-  if (is.null(locales)) {
+  if (is.empty(locales)) {
     type_strings <- sapply(type_ids, function(type_id) {
       types[id == type_id, build_type_strings(id, name, scientific_name)]
     })
