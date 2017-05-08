@@ -11,7 +11,7 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
 
   # Read file
   file <- tools::file_path_as_absolute(file)
-  read_kml <- function(file, CRSobj, ...) {
+  read_kml <- function(file, CRSobj, stringsAsFactors = FALSE, ...) {
     xml <- xml2::read_xml(file, ...)
     placemarks <- sapply(xml2::xml_find_all(xml, "//*[local-name() = 'Placemark']"), xml2::as_list)
     name <- unlist(sapply(placemarks, function(p) if (is.null(p$name)) NA else p$name))
@@ -23,22 +23,22 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
     shp <- sp::spTransform(shp, CRSobj)
     return(data.frame(name, description, lng = shp@coords[, 1], lat = shp@coords[, 2], stringsAsFactors = stringsAsFactors))
   }
-  read_ogr <- function(file, CRSobj, ...) {
+  read_ogr <- function(file, CRSobj, stringsAsFactors = FALSE, ...) {
     layers <- rgdal::ogrListLayers(file)
-    read_layer <- function(layer, ...) {
+    read_layer <- function(layer, stringsAsFactors = FALSE, ...) {
       shp <- rgdal::readOGR(file, layer, stringsAsFactors = stringsAsFactors, ...)
       shp <- sp::spTransform(shp, CRSobj)
       df <- shp@data
       df$lng <- shp@coords[, 1]
       df$lat <- shp@coords[, 2]
-      transform(df, layer)
+      df = cbind(df, layer, stringsAsFactors = stringsAsFactors)
     }
-    return(Reduce(rbind, lapply(layers, read_layer, ...)))
+    return(Reduce(rbind, lapply(layers, read_layer, stringsAsFactors = stringsAsFactors, ...)))
   }
   df <- switch(tools::file_ext(file),
     dbf = foreign::read.dbf(file, as.is = !stringsAsFactors, ...),
-    kml = if (length(rgdal::ogrListLayers(file)) > 1) read_kml(file, CRSobj, ...) else read_ogr(file, CRSobj, ...),
-    tryCatch(data.table::fread(file, stringsAsFactors = stringsAsFactors, na.strings = na.strings, ...), error = function(e) read_ogr(file, CRSobj, ...))
+    kml = if (length(rgdal::ogrListLayers(file)) > 1) read_kml(file, CRSobj, stringsAsFactors = stringsAsFactors, ...) else read_ogr(file, CRSobj, ...),
+    tryCatch(data.table::fread(file, stringsAsFactors = stringsAsFactors, na.strings = na.strings, ...), error = function(e) read_ogr(file, CRSobj, stringsAsFactors = stringsAsFactors, ...))
   )
 
   # Standardize coordinate fields
