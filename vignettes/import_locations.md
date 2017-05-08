@@ -28,11 +28,11 @@ sort(unique(dt[["FIELD"]]))
 Prepare any available scientific and common names for matching to Falling Fruit types:
 
 ```R
-matched_scientific_names <- fruitr::format_strings(dt[["SCIENTIFIC_NAME"]], "matched_scientific_name") # or NULL
-matched_common_names <- fruitr::format_strings(dt[["COMMON_NAME"]], "matched_common_name") # or NULL
+matched_common_names <- fruitr::clean_strings(dt[["COMMON_NAME"]]) # or NULL
+matched_scientific_names <- fruitr::format_scientific_names(dt[["SCIENTIFIC_NAME"]], connecting_terms = FALSE, cultivars = FALSE) # or NULL
 ```
 
-Although common names follow no convention, Falling Fruit formats scientific names using the following conventions:
+For scientific names, Falling Fruit follows these conventions:
 
   * Genus (or higher rank): `Prunus`
   * Subgenus: `Prunus subg. Amygdalus`
@@ -41,7 +41,7 @@ Although common names follow no convention, Falling Fruit formats scientific nam
   * Hybrid: `Prunus x eminens`, `Prunus cerasus x Prunus fruticosa`
   * Cultivar: `Prunus persica 'George IV'`, `Prunus domestica subsp. domestica 'Italian'`, `Acer truncatum x platanoides 'Keithsform'`
 
-`fruitr::format_strings()` formats strings based on preset settings. Although these should work in most cases, they may fail for your particular data. You should inspect the results:
+For matching, connecting terms (` x `, ` subsp. `, ...) are always removed, while cultivars (`'.*'`) can be either removed or retained. Although it should work in most cases,  `fruitr::format_scientific_names()` may fail for your particular data. You should inspect the results:
 
 ```R
 unique(cbind(dt[["SCIENTIFIC_NAME"]], matched_scientific_name))
@@ -51,17 +51,20 @@ If you have unexpected results, report the issue, edit the function and make a p
 
 ### Match names to Falling Fruit types
 
-Match names against Falling Fruit types by providing a list of named vectors, one for each locale. For example, if the names prepared above were scientific names (`"scientific"`) and English common names (`"en"`):
+Match names against Falling Fruit types by providing a list of named vectors, one for each locale. For example, if the names prepared above were scientific names (with connecting terms and cultivars removed: `"scientific"`) and English common names (`"en"`):
 
 ```R
+ff_types <- fruitr::get_ff_types(pending = FALSE)
 locales <- list("scientific" = matched_scientific_names, "en" = matched_common_names)
-matches <- fruitr::match_names_to_ff_types(locales, ids = dt$id, simplify = "first", max_distance = 3, n_nearest = 2)
+matches <- fruitr::match_names_to_ff_types(locales, ids = dt$id, simplify = "first", max_distance = 3, n_nearest = 2, types = ff_types)
 ```
+
+For scientific names with connecting terms removed but cultivars retained, use `"cultivar"` instead of `"scientific"`.
 
 `fruitr::match_names_to_ff_types()` returns a table of exact and fuzzy matches (to all available canonical or synonym names) as Falling Fruit type ids. To convert these to a human-readable form, use `fruitr::build_match_table()`:
 
 ```R
-match_table <- fruitr::build_match_table(dt, matches, join_by = "id", group_by = c("COLUMN1", "COLUMN2"), locales = NULL)
+match_table <- fruitr::build_match_table(dt, matches, join_by = "id", group_by = c("COLUMN1", "COLUMN2"), locales = NULL, types = ff_types)
 ```
 
 The result is a table with all unique combinations of the columns listed in `group_by` alongside the matches computed earlier:
@@ -117,7 +120,7 @@ match_table <- data.table::fread(match_file, stringsAsFactors = FALSE, na.string
 Once the match table is complete, apply the type assignments to the original data:
 
 ```R
-dt <- fruitr::apply_match_table(dt, match_table, drop = FALSE)
+dt <- fruitr::apply_match_table(dt, match_table, drop = FALSE, types = ff_types)
 ```
 
 `fruitr::apply_match_table()` will first check the type assignments against the Falling Fruit database, then apply them if no errors are found.

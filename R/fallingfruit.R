@@ -27,11 +27,9 @@ get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "graft
   dt[, common_names := list(list(na.remove(c(name, strsplit(synonyms, "[ ]*,[ ]*")[[1]])))), by = id]
   dt[, scientific_names := list(list(na.remove(c(scientific_name, strsplit(scientific_synonyms, "[ ]*,[ ]*")[[1]])))), by = id]
 
-  # Format names (for matching and display)
-  dt[, printed_common_names := lapply(common_names, format_strings, types = "printed_common_name")]
-  dt[, matched_common_names := lapply(common_names, format_strings, types = "matched_common_name")]
-  dt[, printed_scientific_names := lapply(scientific_names, format_strings, types = "printed_scientific_name")]
-  dt[, matched_scientific_names := lapply(scientific_names, format_strings, types = "matched_scientific_name")]
+  # Format names
+  dt[, matched_scientific_names := lapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = FALSE)]
+  dt[, matched_cultivars := lapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = TRUE)]
 
   # Return types as data.table
   return(dt)
@@ -59,7 +57,7 @@ build_type_strings <- function(ids = NULL, common_names = NULL, scientific_names
 
   # Build type strings
   type_strings <- clean_strings(paste0(ids, ": ", common_names, " ", substr(science_in, 1, 1), scientific_names, substr(science_in, 2, 2), " {", notes, "}"))
-  type_strings <- gsub("(:\\s*$)|(^: )|( \\{\\})", "", type_strings)
+  type_strings <- gsub("(:\\s*$)|(^: )|(\\s*\\{\\})", "", type_strings)
   return(type_strings)
 }
 

@@ -91,9 +91,9 @@ is.empty <- function(x, env = globalenv()) {
     suppressWarnings(any(
       is.null(x_i),
       length(x_i) == 0,
-      nrow(x_i) == 0,
+      !is.null(nrow(x_i)) && nrow(x_i) == 0,
       all(is.na(x_i)),
-      all(is.character(x_i) == 1 && x_i == "")
+      is.character(x_i) && all(x_i[!is.na(x_i)] == "")
     ))
   })
   return(as.vector(results))
@@ -193,6 +193,29 @@ clean_strings <- function(x) {
   return(x)
 }
 
+#' Format Addresses
+#'
+#' @family helper functions
+#' @export
+#' @examples
+#' format_addresses("123 SE. MCDONALD AV")
+format_addresses <- function(x) {
+  start_x <- x
+  x <- clean_strings(x)
+  x <- capitalize_words(x, strict = TRUE)	# force lowercase, then capitalize each word
+  x <- gsub("\\.", "", x)	# remove periods
+  x <- gsub("(se|sw|ne|nw)( |$)", "\\U\\1\\2", x, perl = TRUE, ignore.case = TRUE)	# capitalize SE, SW, NE, NW
+  x <- gsub("Mc([a-z])", "Mc\\U\\1", x, perl = TRUE, ignore.case = TRUE)	# restore McCaps
+  x <- gsub("Av( |$)", "Ave\\1", x, ignore.case = TRUE)	# Av -> Ave
+  # Iterate
+  changed <- x != start_x
+  changed[is.na(changed)] <- FALSE
+  if (any(changed)) {
+    x[changed] <- format_addresses(x[changed])
+  }
+  return(x)
+}
+
 #' Format Specialty Strings
 #'
 #' Supports species common names, latin names, and addresses.
@@ -200,57 +223,48 @@ clean_strings <- function(x) {
 #' @family helper functions
 #' @export
 #' @examples
-#' format_strings(" 123 SE. MCDONALD AV ", types = "address")
-#' format_strings("Malus X Domestica Subsp gala 'gala'", types = "printed_scientific_name")
-#' format_strings("Malus X Domestica Subsp gala 'gala'", types = "matched_scientific_name")
-#' format_strings("Tamarix rubella Batt.", types = "printed_scientific_name")
-#' format_strings("Tamarix lucronensis Sennen & Elias", types = "printed_scientific_name")
-#' format_strings("Tamarix laxa var. subspicata Ehrenb.", types = "printed_scientific_name")
-format_strings <- function(x, types = "", clean = TRUE) {
+#' format_scientific_names("Malus")
+#' format_scientific_names("Malus Batt.")
+#' format_scientific_names("Tamarix rubella Batt.")
+#' format_scientific_names("Tamarix lucronensis Sennen & Elias")
+#' format_scientific_names("Malus ×domestica var. gala", connecting_terms = TRUE)
+#' format_scientific_names("Malus ×domestica var. gala", connecting_terms = FALSE)
+#' format_scientific_names("Malus pumila 'gala'", cultivars = TRUE)
+#' format_scientific_names("Malus pumila 'gala'", cultivars = FALSE)
+#' format_scientific_names("Prunus subg amygdalus")
+format_scientific_names <- function(x, connecting_terms = TRUE, cultivars = TRUE) {
   start_x <- x
-  if (clean) {
-    x <- clean_strings(x)
+  x <- clean_strings(x)
+  # Connecting terms
+  x <- gsub("\\s*×\\s*", " x ", x, perl = TRUE) # space × from other terms
+  x <- gsub("\\s+[X×](\\s+|$)", " x\\1", x, perl = TRUE) # standardize hybrid (Genus x species)
+  x <- gsub("\\s+(subgenus|subg)(\\.*)(\\s+|$)", " subg.\\3", x, ignore.case = TRUE) # subgenus -> subg.
+  x <- gsub("\\s+(species|spp|sp)(\\.*)(\\s+|$)", " sp.\\3", x, ignore.case = TRUE) # species -> sp.
+  x <- gsub("\\s+(subspecies|ssp|sspp|subspp|subsp)(\\.*)(\\s+|$)", " subsp.\\3", x, ignore.case = TRUE) # subspecies -> subsp.
+  x <- gsub("\\s+(variety|var)(\\.*)(\\s+|$)", " var.\\3", x, ignore.case = TRUE) # variety -> var.
+  x <- gsub("\\s+(subvariety|subvar)(\\.*)(\\s+|$)", " subvar.\\3", x, ignore.case = TRUE) # subvariety -> subvar.
+  x <- gsub("\\s+(form|forma|f)(\\.*)(\\s+|$)", " f.\\3", x, ignore.case = TRUE) # form -> f.
+  x <- gsub("\\s+(subform|subf)(\\.*)(\\s+|$)", " subf.\\3", x, ignore.case = TRUE) # subform -> subf.
+  x <- gsub("(auct.|auctt.)+\\s(nec|non|mult.)*", "", x, perl = TRUE) # clear auctorum notation
+  # Author citations
+  x <- gsub("\\s*(?<!^)(?<!(^[A-Z]{1}[a-z] ))(?<! subg. )([A-Z]{1}[a-z]+\\.*|&)(\\s*|$)+$", "", x, perl = TRUE) # clear author citations (trailing capitalized words, skipping first)
+  # Case
+  x <- capitalize_words(x, strict = TRUE, first = TRUE) # force lowercase, then capitalize first word
+  x <- gsub("(')([a-z])([a-z])", "\\1\\U\\2\\L\\3", x, perl = TRUE)  # capitalize letter after ' if before letter
+  x <- gsub("( subg. )([a-z])([a-z])", "\\1\\U\\2\\L\\3", x, perl = TRUE)  # capitalize letter after subg. if before letter
+  # Removals
+  if (!connecting_terms) {
+    x <- gsub(" (subg|sp|subsp|var|subvar|f|subf)\\.*( |$)", "\\2", x) # remove connecting terms
+    x <- gsub(" x ", " ", x) # remove hybrid x
   }
-  if ("address" %in% types) {
-    x <- capitalize_words(x, strict = TRUE)	# force lowercase, then capitalize each word
-    x <- gsub("\\.", "", x)	# remove periods
-    x <- gsub("(se|sw|ne|nw)( |$)", "\\U\\1\\2", x, perl = TRUE, ignore.case = TRUE)	# capitalize SE, SW, NE, NW
-    x <- gsub("Mc([a-z])", "Mc\\U\\1", x, perl = TRUE, ignore.case = TRUE)	# restore McCaps
-    x <- gsub("Av( |$)", "Ave\\1", x, ignore.case = TRUE)	# Av -> Ave
-  }
-  if ("printed_common_name" %in% types) {
-    x <- capitalize_words(x, strict = TRUE, first = TRUE) # force lowercase, then capitalize first word
-  }
-  if ("matched_common_name" %in% types) {
-    x <- tolower(x)
-    # TODO: Remove following?
-    x <- gsub("\\s*\\(.*\\)(\\s|$)", "\\1", x) # remove disambiguation "(category)"
-  }
-  if (any(c("printed_scientific_name", "matched_scientific_name") %in% types)) {
-    x <- gsub("\\s*\\([^\\)]*\\)|,.*$", "", x) # clear parentheses or after first comma
-    x <- gsub("\\s+X\\s+", " x ", x) # lowercase hybrid x
-    x <- gsub("(\\s*([A-Z]{1}[a-z]+\\.*|&)(\\s*|$))+$", "", x, perl = TRUE) # clear trailing capitalized words and abbreviations
-    x <- gsub("(auct.|auctt.)+\\s(nec|non|mult.)*", "", x, perl = TRUE) # clear auctorum notation
-  }
-  if ("printed_scientific_name" %in% types) {
-    x <- capitalize_words(x, strict = TRUE, first = TRUE) # force lowercase, then capitalize first word
-    x <- gsub("'([a-z])([a-z])", "'\\U\\1\\L\\2", x, perl = TRUE)  # capitalize letter proceeding ' if followed by letter
-    x <- gsub("(subsp|var|subvar|f|subf|subg)( |$)", "\\1.\\2", x) # add . to infraspecific abbreviations
-    x <- gsub(" (species|spp|ssp|sp)( |$)", " sp.\\1", x, ignore.case = TRUE) # species -> sp
-    x <- gsub("(^[a-z]+$)", "\\1 sp.", x, ignore.case = TRUE) # Genus -> add sp FIXME: What if higher taxonomy?
-    x <- gsub("([ ]+[a-z×][ ]+)", "\\L\\1", x, ignore.case = TRUE, perl = TRUE) # standardize hybrid x (Genus x species)
-  }
-  if ("matched_scientific_name" %in% types) {
-    x <- tolower(x)
-    x <- gsub(" (species|spp|ssp|sp|subsp|var|subvar|f|subf|subg)(\\.*)( |$)", "\\3", x) # remove (infra)species abbreviations
-    x <- gsub("([ ]+[a-z×][ ]+)", " ", x) # remove hybrid x
-    x <- gsub("'.*'", "", x) # remove quotes (around variety names)
+  if (!cultivars) {
+    x <- gsub("\\s+'.*'", "", x) # remove cultivar
   }
   # Iterate
   changed <- x != start_x
   changed[is.na(changed)] <- FALSE
   if (any(changed)) {
-    x[changed] <- format_strings(x[changed], types = types, clean = clean)
+    x[changed] <- format_scientific_names(x[changed], connecting_terms = connecting_terms, cultivars = cultivars)
   }
   return(x)
 }
