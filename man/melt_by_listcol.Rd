@@ -6,22 +6,31 @@
 \usage{
 melt_by_listcol(dt, column)
 }
+\arguments{
+\item{dt}{data.table.}
+
+\item{column}{Name or index of list column.}
+}
+\value{
+A data.table with rows added to accomodate the expansion of the list column.
+}
 \description{
-Melt Data Table by List Column
+Expands a list column in a data.table to an atomic vector, adding rows as necessary.
 }
 \examples{
-dt <- data.table(label = list(list("a", "b"), list("c")), count = c(1, 2))
+str(dt <- data.table::data.table(label = list(list("a", "b"), list("c")), count = c(1, 2)))
 melt_by_listcol(dt, "label")
 melt_by_listcol(dt, 1)
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{na.remove}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},

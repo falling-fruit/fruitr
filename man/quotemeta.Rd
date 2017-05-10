@@ -2,10 +2,33 @@
 % Please edit documentation in R/helpers.R
 \name{quotemeta}
 \alias{quotemeta}
-\title{Quote Metacharacters}
+\title{Quote Regex Metacharacters}
 \usage{
-quotemeta(string)
+quotemeta(x)
+}
+\arguments{
+\item{x}{Character vector.}
+}
+\value{
+Character vector of the same length as \code{x}.
 }
 \description{
-Quote Metacharacters
+Escape regular expression metacharacters in strings.
+}
+\examples{
+quotemeta("^hello world (are you there?)$")
+}
+\seealso{
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
+  \code{\link{clean_strings}},
+  \code{\link{format_addresses}},
+  \code{\link{format_scientific_names}},
+  \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
+  \code{\link{na.remove}},
+  \code{\link{normalize_language}},
+  \code{\link{replace_values_in_list}},
+  \code{\link{sptransform}},
+  \code{\link{subset_search_results}},
+  \code{\link{unique_na}}
 }

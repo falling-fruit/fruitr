@@ -2,10 +2,16 @@
 
 #' Replace Values in List
 #'
+#' Iterates through a list and replaces values with replacements.
+#'
+#' @param x List object.
+#' @param old List or vector of values to replace.
+#' @param new List or vector of replacement values.
+#' @return A list with values replaced.
 #' @export
 #' @family helper functions
 #' @examples
-#' x <- list(NULL, list(NULL, NA))
+#' str(x <- list(NULL, list(NULL, NA, 2)))
 #' str(replace_values_in_list(x, NULL, 1))
 #' str(replace_values_in_list(x, list(NULL, NA), 1))
 #' str(replace_values_in_list(x, list(NULL, NA), list(1, 2)))
@@ -35,52 +41,34 @@ replace_values_in_list <- function(x, old, new) {
 
 #' Remove Missing Values from Object
 #'
+#' Silently removes missing values or incomplete cases with \code{\link[base]{NA}}s.
+#'
+#' @param x Object passed to \code{\link[stats]{na.omit}}.
+#' @return \code{x} with \code{\link[base]{NA}}s removed.
 #' @export
 #' @family helper functions
-na.remove <- function(x, ...) {
-  y <- na.omit(x, ...)
+#' @examples
+#' str(na.omit(c(1, NA)))
+#' str(na.remove(c(1, NA)))
+na.remove <- function(x) {
+  y <- na.omit(x)
   attributes(y) <- NULL
   return(y)
 }
 
-#' Expand List by Split
-#'
-#' NOTE: Currently unused.
-#'
-#' @export
-#' @family helper functions
-#' @examples
-#' x <- list(list(count = 1, label = "a, b"), list(count = 2, label = "c"))
-#' str(expand_list_by_split(x, "label"))
-expand_list_by_split <- function(x, name, split = "\\s*,\\s*") {
-  splits <- lapply(x, function(x_i) {
-    if (is.null(x_i[[name]])) {
-      return(NA)
-    } else {
-      return(strsplit(as.character(x_i[[name]]), split)[[1]])
-    }
-  })
-  n_splits <- sapply(splits, FUN = length)
-  x.rep <- x[rep(seq(length(x)), n_splits)]
-  splits.all <- unlist(splits)
-  for (i in 1:length(x.rep)) {
-    if (is.na(splits.all[i])) next
-    x.rep[[i]][[name]] <- splits.all[i]
-  }
-  return(x.rep)
-}
-
 #' Check if Object is Empty
 #'
-#' FIXME: Returns FALSE if object doesn't exist when called within other function.
+#' Tests whether each element of an object is (or contains only) empty values (non-existent, zero-length, "", \code{NA}, \code{NULL}).\cr
 #'
+#' @param x Object.
+#' @return Whether each element of \code{x} is empty.
 #' @export
 #' @family helper functions
 #' @examples
 #' is.empty(list())
-#' is.empty(list(NULL, NA, "", c()))
 #' is.empty(list(1, NULL, NA, "", c()))
-is.empty <- function(x, env = globalenv()) {
+#' is.empty(list(1, NULL, NA, "", c(NA, NA)))
+is.empty <- function(x) {
   if (missing(x)) {
     return(TRUE)
   }
@@ -101,6 +89,10 @@ is.empty <- function(x, env = globalenv()) {
 
 #' Return Single Unique Value or NA
 #'
+#' Returns either \code{NA} or the single unique element if it exists.
+#'
+#' @param x List or atomic vector.
+#' @param na.rm Whether missing values should be removed.
 #' @export
 #' @family helper functions
 #' @examples
@@ -110,7 +102,7 @@ is.empty <- function(x, env = globalenv()) {
 #' unique_na(c(1, NA), na.rm = TRUE)
 unique_na <- function(x, na.rm = FALSE) {
   if (na.rm) {
-    x <- x[!is.na(x)]
+    x <- na.remove(x)
   }
   ux <- unique(x)
   if (length(ux) == 1) {
@@ -122,10 +114,15 @@ unique_na <- function(x, na.rm = FALSE) {
 
 #' Melt Data Table by List Column
 #'
+#' Expands a list column in a data.table to an atomic vector, adding rows as necessary.
+#'
+#' @param dt data.table.
+#' @param column Name or index of list column.
+#' @return A data.table with rows added to accomodate the expansion of the list column.
 #' @export
 #' @family helper functions
 #' @examples
-#' dt <- data.table(label = list(list("a", "b"), list("c")), count = c(1, 2))
+#' str(dt <- data.table::data.table(label = list(list("a", "b"), list("c")), count = c(1, 2)))
 #' melt_by_listcol(dt, "label")
 #' melt_by_listcol(dt, 1)
 melt_by_listcol <- function(dt, column) {
@@ -136,13 +133,36 @@ melt_by_listcol <- function(dt, column) {
 
 # String Formatting --------------
 
-#' Quote Metacharacters
-quotemeta <- function(string) {
-  stringr::str_replace_all(string, "(\\W)", "\\\\\\1")
+#' Quote Regex Metacharacters
+#'
+#' Escape regular expression metacharacters in strings.
+#'
+#' @param x Character vector.
+#' @return Character vector of the same length as \code{x}.
+#' @family helper functions
+#' @export
+#' @examples
+#' quotemeta("^hello world (are you there?)$")
+quotemeta <- function(x) {
+  stringr::str_replace_all(x, "(\\W)", "\\\\\\1")
 }
 
 #' Capitalize Words
-#' Skips numbers at start of words (e.g. 3-in-1 pear).
+#'
+#' Capitalizes words in character strings.
+#'
+#' @param x Character vector.
+#' @param strict Whether to lowercase characters not being capitalized.
+#' @param first Whether to only capitalize the first word.
+#' @return Character vector of the same length as \code{x}.
+#' @export
+#' @family helper functions
+#' @examples
+#' x <- "hello wORLd"
+#' capitalize_words(x)
+#' capitalize_words(x, first = TRUE)
+#' capitalize_words(x, strict = TRUE)
+#' capitalize_words("3-in-1 pear", first = TRUE)
 capitalize_words <- function(x, strict = FALSE, first = FALSE) {
   if (strict) {
     x <- tolower(x)
@@ -157,33 +177,35 @@ capitalize_words <- function(x, strict = FALSE, first = FALSE) {
 
 #' Clean Strings
 #'
-#' Performs general string cleaning operations.
+#' Performs generic string cleaning operations.
 #'
+#' @param x Character vector.
+#' @return Character vector of the same length as \code{x}.
 #' @family helper functions
 #' @export
 #' @examples
-#' clean_strings(" ..[] Hello,,  `world`.. how are you?() ")
+#' clean_strings("[](){}")
+#' clean_strings("``''\"\"")
+#' clean_strings("..,,")
+#' clean_strings(" Hello,,  `world`.. how are you?()")
 clean_strings <- function(x) {
   start_x <- x
-
   # Non-empty substitutions
   x <- gsub("`|\\\"", "'", x, perl = TRUE)  # quotes -> '
   x <- gsub("\\s*(\\s*\\.+)+", ".", x, perl = TRUE)  # remove duplicate periods
   x <- gsub("\\s*(\\s*,+)+", ",", x, perl = TRUE)  # remove duplicate commas
   x <- gsub("([\\s,]*\\.+(\\s*,+)*)+", ".", x, perl = TRUE)  # merge punctuation
   x <- gsub("(\\s)+", " ", x, perl = TRUE)  # squish white space
-
   # Empty substitutions
   remove <- paste(
     "(?:^|\\s+)(NA|N\\/A)(?:$|\\s+)", # NAs in string
-    "\\(\\s*\\)|\\[\\s*\\]", # empty parentheses and brackets
+    "\\(\\s*\\)|\\[\\s*\\]|\\{\\s*\\}", # empty parentheses and brackets
     "'(\\s*'*\\s*)'", # empty quotes
     "^\\s+|\\s+$|\\s+(?=[\\.|,])", # trailing white space
     "^[,\\.\\s]+|[\\s,]+$", # leading punctuation, trailing commas
     "^[\\-]+|[\\-]+$", # trailing dashes
     sep = "|")
   x <- gsub(remove, "", x, perl = TRUE)
-
   # Iterate
   changed <- x != start_x
   changed[is.na(changed)] <- FALSE
@@ -195,6 +217,12 @@ clean_strings <- function(x) {
 
 #' Format Addresses
 #'
+#' Attempts to clean and format addresses names by the following convention:\cr
+#' <Number> <SE|SW|NE|NW> <Street McName> <Ave|*>
+#'
+#' @param x Character vector.
+#' @return Ideally, correctly formatted addresses.
+#' @seealso \code{\link{clean_strings}} for generic string cleaning.
 #' @family helper functions
 #' @export
 #' @examples
@@ -216,10 +244,16 @@ format_addresses <- function(x) {
   return(x)
 }
 
-#' Format Specialty Strings
+#' Format Scientific Names
 #'
-#' Supports species common names, latin names, and addresses.
+#' Attempts to clean and format scientific names by the following convention:\cr
+#' <Genus|Taxon> <species> (<subg|subsp|var|f|subvar|subf>. <subspecies name>) <Author Citation> 'Cultivar'
 #'
+#' @param x Character vector.
+#' @param connecting_terms Whether to retain connecting terms (e.g. "subsp.", "var.").
+#' @param cultivars Whether to retain cultivar names (e.g. "'Bradford'").
+#' @return Ideally, correctly formatted scientific names.
+#' @seealso \code{\link{clean_strings}} for generic string cleaning.
 #' @family helper functions
 #' @export
 #' @examples
@@ -232,6 +266,7 @@ format_addresses <- function(x) {
 #' format_scientific_names("Malus pumila 'gala'", cultivars = TRUE)
 #' format_scientific_names("Malus pumila 'gala'", cultivars = FALSE)
 #' format_scientific_names("Prunus subg amygdalus")
+#' format_scientific_names("Malus ×", connecting_terms = FALSE)
 format_scientific_names <- function(x, connecting_terms = TRUE, cultivars = TRUE) {
   start_x <- x
   x <- clean_strings(x)
@@ -255,7 +290,7 @@ format_scientific_names <- function(x, connecting_terms = TRUE, cultivars = TRUE
   # Removals
   if (!connecting_terms) {
     x <- gsub(" (subg|sp|subsp|var|subvar|f|subf)\\.*( |$)", "\\2", x) # remove connecting terms
-    x <- gsub(" x ", " ", x) # remove hybrid x
+    x <- gsub(" x( |$)", " ", x) # remove hybrid x
   }
   if (!cultivars) {
     x <- gsub("\\s+'.*'", "", x) # remove cultivar
@@ -269,16 +304,15 @@ format_scientific_names <- function(x, connecting_terms = TRUE, cultivars = TRUE
   return(x)
 }
 
-unescape_html <- function(str){
-  xml2::xml_text(xml2::read_html(paste0("<x>", str, "</x>")))
-}
-
 # Translations --------------
 
 #' Normalize Language
 #'
 #' Returns the highest level ISO or Wikipedia language code corresponding to the ISO or Wikipedia language code, language name, or autonym provided. If the input matches zero or multiple entries, the input is returned and a warning is raised.
 #'
+#' @param x Character string.
+#' @param types Types of strings to match against, as the corresponding column names in the \link{Language_codes} table.
+#' @return Corresponding, highest-level ISO or Wikipedia language code, or \code{x} if no unique match was found.
 #' @family helper functions
 #' @export
 #' @examples
@@ -287,14 +321,12 @@ unescape_html <- function(str){
 #' normalize_language("Español")
 #' normalize_language("Espagnol")
 normalize_language = function(x, types = c("locale", "variant", "ISO639.1", "ISO639.2T", "ISO639.2B", "ISO639.3", "ISO639.6", "wikipedia", "other", "autonym", "en", "fr", "de", "ru", "es", "it", "zh")) {
-
   # Prepare input
   if (is.empty(x)) {
     return(NA_character_)
   }
   x <- tolower(x)
   cols <- intersect(types, names(Language_codes))
-
   # Prioritize code (over name) column matches if both selected
   code_cols <- c("locale", "variant", "ISO639.1", "ISO639.2T", "ISO639.2B", "ISO639.3", "ISO639.6", "wikipedia", "other")
   selected_code_cols <- intersect(cols, code_cols)
@@ -309,7 +341,6 @@ normalize_language = function(x, types = c("locale", "variant", "ISO639.1", "ISO
       cols <- selected_name_cols
     }
   }
-
   # Search and filter results
   ind <- unique(unlist(sapply(cols, function(col) {
     which(grepl(paste0("(^|,\\s*)", quotemeta(x), "($|,)"), Language_codes[[col]]))
@@ -335,27 +366,31 @@ normalize_language = function(x, types = c("locale", "variant", "ISO639.1", "ISO
 
 #' Subset Search Results
 #'
-#' Difference search results based on subsetting of search strings (interpreted as search phrases).
+#' Allocate values (e.g. search results) based on subsetting of strings (e.g. search strings).
 #'
+#' @param strings Character vector.
+#' @param values Numeric vector of the same length as \code{strings}.
+#' @param ignore.case Whether to ignore case when subsetting strings.
+#' @return Values, re-allocated based on the subsetting of their strings.
 #' @family helper functions
 #' @export
 #' @examples
 #' # Pine: 20, Blue pine: 17
 #' strings <- c("Pine", "Blue pine")
-#' results <- c(20, 17)
-#' subset_search_results(strings, results) # 3, 17
+#' values <- c(20, 17)
+#' subset_search_results(strings, values) # 3, 17
 #' # Pine: 20, Blue pine: 17, White blue pine: 10, White: 20
 #' strings <- c("Pine", "Blue pine", "White blue pine", "White")
-#' results <- c(20, 17, 10, 20)
-#' subset_search_results(strings, results) # 3, 7, 10, 10
+#' values <- c(20, 17, 10, 20)
+#' subset_search_results(strings, values) # 3, 7, 10, 10
 #' # Pine: 20, Blue pine: 17, Blue pine a: 10, Blue pine b: 5, Blue pine b c: 1
 #' strings <- c("Pine", "Blue pine", "Blue pine a", "Blue pine b", "Blue pine b c")
-#' results <- c(20, 17, 10, 5, 1)
-#' subset_search_results(strings, results) # 3, 2, 10, 4, 1
+#' values <- c(20, 17, 10, 5, 1)
+#' subset_search_results(strings, values) # 3, 2, 10, 4, 1
 #' # Pine: 20, Blue: 15, Blue pine: 10, Pine blue: 3
 #' strings <- c("Pine", "Blue", "Blue pine", "Pine blue")
-#' results <- c(20, 15, 10, 3)
-#' subset_search_results(strings, results) # 7, 2, 10, 3
+#' values <- c(20, 15, 10, 3)
+#' subset_search_results(strings, values) # 7, 2, 10, 3
 #' # Pine: 200, Blue pine: 100, White pine: 100
 subset_search_results <- function(strings, values, ignore.case = TRUE) {
   subsets <- do.call("rbind", lapply(paste0(strings, " | ", strings), grepl, x = strings, ignore.case = ignore.case))

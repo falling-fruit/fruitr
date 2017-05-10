@@ -8,6 +8,14 @@ normalize_language(x, types = c("locale", "variant", "ISO639.1", "ISO639.2T",
   "ISO639.2B", "ISO639.3", "ISO639.6", "wikipedia", "other", "autonym", "en",
   "fr", "de", "ru", "es", "it", "zh"))
 }
+\arguments{
+\item{x}{Character string.}
+
+\item{types}{Types of strings to match against, as the corresponding column names in the \link{Language_codes} table.}
+}
+\value{
+Corresponding, highest-level ISO or Wikipedia language code, or \code{x} if no unique match was found.
+}
 \description{
 Returns the highest level ISO or Wikipedia language code corresponding to the ISO or Wikipedia language code, language name, or autonym provided. If the input matches zero or multiple entries, the input is returned and a warning is raised.
 }
@@ -18,13 +26,13 @@ normalize_language("Español")
 normalize_language("Espagnol")
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
-  \code{\link{na.remove}},
+  \code{\link{na.remove}}, \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},

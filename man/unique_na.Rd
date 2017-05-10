@@ -6,8 +6,13 @@
 \usage{
 unique_na(x, na.rm = FALSE)
 }
+\arguments{
+\item{x}{List or atomic vector.}
+
+\item{na.rm}{Whether missing values should be removed.}
+}
 \description{
-Return Single Unique Value or NA
+Returns either \code{NA} or the single unique element if it exists.
 }
 \examples{
 unique_na(c(1, 1))
@@ -16,14 +21,15 @@ unique_na(c(1, NA), na.rm = FALSE)
 unique_na(c(1, NA), na.rm = TRUE)
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
   \code{\link{na.remove}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}}

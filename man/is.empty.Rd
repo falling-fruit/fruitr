@@ -4,24 +4,31 @@
 \alias{is.empty}
 \title{Check if Object is Empty}
 \usage{
-is.empty(x, env = globalenv())
+is.empty(x)
+}
+\arguments{
+\item{x}{Object.}
+}
+\value{
+Whether each element of \code{x} is empty.
 }
 \description{
-FIXME: Returns FALSE if object doesn't exist when called within other function.
+Tests whether each element of an object is (or contains only) empty values (non-existent, zero-length, "", \code{NA}, \code{NULL}).\cr
 }
 \examples{
 is.empty(list())
-is.empty(list(NULL, NA, "", c()))
 is.empty(list(1, NULL, NA, "", c()))
+is.empty(list(1, NULL, NA, "", c(NA, NA)))
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{melt_by_listcol}}, \code{\link{na.remove}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},

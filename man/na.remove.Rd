@@ -4,19 +4,30 @@
 \alias{na.remove}
 \title{Remove Missing Values from Object}
 \usage{
-na.remove(x, ...)
+na.remove(x)
+}
+\arguments{
+\item{x}{Object passed to \code{\link[stats]{na.omit}}.}
+}
+\value{
+\code{x} with \code{\link[base]{NA}}s removed.
 }
 \description{
-Remove Missing Values from Object
+Silently removes missing values or incomplete cases with \code{\link[base]{NA}}s.
+}
+\examples{
+str(na.omit(c(1, NA)))
+str(na.remove(c(1, NA)))
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},
