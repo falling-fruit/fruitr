@@ -6,12 +6,19 @@
 \usage{
 parse_type_strings(type_strings)
 }
+\arguments{
+\item{type_strings}{Character vector of type strings.}
+}
+\value{
+List of lists with id, name, and scientific name.
+}
 \description{
-Parse Type Strings
+Parses type strings into their component parts.
 }
 \examples{
-type_strings <- build_type_strings(c(1, 2), c("Apple", "Pear"), c("Malus domestica", "Pyrus communis"))
-str(parse_type_strings(type_strings))
+parse_type_strings("14")
+parse_type_strings("Apple [Malus pumila]")
+parse_type_strings("14: Apple [Malus pumila]")
 }
 \seealso{
 Other Falling Fruit functions: \code{\link{build_location_description}},

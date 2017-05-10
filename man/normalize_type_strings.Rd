@@ -4,18 +4,27 @@
 \alias{normalize_type_strings}
 \title{Normalize Type Strings}
 \usage{
-normalize_type_strings(type_strings, types)
+normalize_type_strings(type_strings, types = get_ff_types(pending = FALSE,
+  urls = FALSE))
+}
+\arguments{
+\item{type_strings}{Character vector of type strings as comma-delimited lists.}
+
+\item{types}{Falling Fruit types}
+}
+\value{
+Character vector of complete type strings as comma-delimited lists.
 }
 \description{
-Normalize Type Strings
+Checks type strings against Falling Fruit types and fills in any missing components.
 }
 \examples{
-types <- get_ff_types()
-normalize_type_strings("Apple", types)
-normalize_type_strings(c("14", "Apple [Malus]"), types)
-normalize_type_strings(c("", " ,", NA), types)
-normalize_type_strings(c("14: Apple, 14: Apple"), types)
-normalize_type_strings("Hello World", types)
+ff_types <- get_ff_types()
+normalize_type_strings("Apple", ff_types)
+normalize_type_strings(c("14", "Apple [Malus]"), ff_types)
+normalize_type_strings(c("", " ,", NA), ff_types)
+normalize_type_strings(c("14: Apple, 14: Apple"), ff_types)
+normalize_type_strings("Hello World", ff_types)
 }
 \seealso{
 Other Falling Fruit functions: \code{\link{build_location_description}},

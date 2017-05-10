@@ -5,15 +5,23 @@
 \title{Match Type Strings to Types}
 \usage{
 match_type_strings(type_strings, types = get_ff_types(pending = FALSE, urls =
-  FALSE), simplify = FALSE)
+  FALSE))
+}
+\arguments{
+\item{type_strings}{Character vector of type strings.}
+
+\item{types}{Falling Fruit types.}
+}
+\value{
+List of Falling Fruit type ids matching each element in \code{type_strings}.
 }
 \description{
-Match Type Strings to Types
+Returns the ids of the Falling Fruit types matching each type string.
 }
 \examples{
-types <- get_ff_types()
-match_type_strings("Apple", types)
-match_type_strings(c("Apple [Malus domestica]", "Pear [Pyrus]"), types)
+ff_types <- get_ff_types()
+match_type_strings("Apple", ff_types)
+match_type_strings(c("Apple [Malus domestica]", "Pear [Pyrus]"), ff_types)
 }
 \seealso{
 Other Falling Fruit functions: \code{\link{build_location_description}},
