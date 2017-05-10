@@ -160,8 +160,8 @@ normalize_type_strings <- function(type_strings, types = get_ff_types(pending = 
   # Standardize type strings
   ids <- unlist(matches[n_matches == 1])
   if (length(ids) > 0) {
-    old_strings <- paste0("(^|,\\s*)", quotemeta(matched_type_strings[n_matches == 1]))
-    new_strings <- paste0("\\1", build_type_strings(ids, types[.(ids), name], types[.(ids), scientific_name]))
+    old_strings <- paste0("(^|,\\s*)", quotemeta(matched_type_strings[n_matches == 1]), "\\s*(,|$)")
+    new_strings <- paste0("\\1", build_type_strings(ids, types[.(ids), name], types[.(ids), scientific_name]), "\\2")
     names(new_strings) <- old_strings
     return(stringr::str_replace_all(type_strings, new_strings))
   } else {
