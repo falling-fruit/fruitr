@@ -150,40 +150,69 @@ normalize_type_strings <- function(type_strings, types) {
 
 #' Build Location Description
 #'
-#' Builds a description from its inputs:
-#' [nx] type string, [yx] type string, ... + sep + notes (those unique and equal for all)
+#' Builds a description from its inputs. When \code{merge} is \code{TRUE}, all content is summarized as one group, and all notes not equal throughout are discarded. Otherwise, all content is preserved and only grouped for equal types with all equal notes.
 #'
-#' WARNING: Not splitting at commas to support types with commas in them, so type_strings need to be single-type.
-#'
+#' @param type_strings Character vector.
+#' @param notes List of character vectors, each of the same length.
+#' @param merge Whether to merge types, discarding any notes that are not equal for all types.
+#' @param type_sep Character string to seperate each element in \code{type_strings} when \code{merge = TRUE}.
+#' @param note_sep Character string to seperate each retained element in \code{notes}.
+#' @param group_sep Character string to seperate each grouping when \code{merge = FALSE}.
+#' @param frequency Whether to display frequency before each element in \code{type_strings}.
+#' @param frequency_in String of two characters in which to display the frequencies.
+#' @return Character string of the summarized and concatenated values.
 #' @export
 #' @family Falling Fruit functions
 #' @examples
-#' build_location_description(c("Apple", "Pear", "Pear"), notes = list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 30 m")))
-#' build_location_description(c("Apple", "Pear", "Pear"), notes = list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 30 m")), frequency = FALSE)
-build_location_description <- function(type_strings, notes = NULL, sep = ". ", frequency = TRUE, frequency_in = "[]") {
-  frequencies <- summary(as.factor(unlist(type_strings)))
-  if (frequency) {
-    description <- paste0(substr(frequency_in, 1, 1), frequencies, "x", substr(frequency_in, 2, 2), " ", attr(frequencies, "names"), collapse = ", ")
+#' type_strings <- c("Apple", "Pear", "Pear")
+#' notes <- list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 20 m"))
+#' build_location_description(type_strings, notes)
+#' build_location_description(type_strings, notes, frequency = FALSE)
+#' build_location_description(type_strings, notes, merge = FALSE)
+build_location_description <- function(type_strings, notes = NULL, merge = TRUE, type_sep = ", ", note_sep = ". ", group_sep = "<br>", frequency = TRUE, frequency_in = "[]") {
+  if (merge || is.null(notes)) {
+    frequencies <- summary(as.factor(unlist(type_strings)))
+    if (frequency) {
+      description <- paste0(substr(frequency_in, 1, 1), frequencies, "x", substr(frequency_in, 2, 2), " ", attr(frequencies, "names"), collapse = type_sep)
+    } else {
+      description <- paste0(attr(frequencies, "names"), collapse = type_sep)
+    }
+    notes <- lapply(do.call(Map, c(base::c, notes)), unique_na)
+    notes <- notes[!is.empty(notes)]
+    if (length(notes) > 0) {
+      description <- paste0(paste(description, paste(notes, collapse = note_sep), sep = note_sep), gsub("\\s*$", "", note_sep))
+    }
   } else {
-    description <- paste0(attr(frequencies, "names"), collapse = ", ")
-  }
-  notes <- lapply(do.call(Map, c(base::c, notes)), unique_na)
-  notes <- notes[!is.empty(notes)]
-  if (length(notes) > 0) {
-    description <- paste0(paste(description, paste(notes, collapse = sep), sep = sep), gsub("\\s*$", "", sep))
+    types <- unique(unlist(type_strings))
+    descriptions <- lapply(types, function(type) {
+      i_type <- type_strings == type
+      if (length(i_type) == 1) {
+        build_location_description(type_strings[i_type], notes[i_type], type_sep = type_sep, note_sep = note_sep, frequency = frequency, frequency_in = frequency_in)
+      } else {
+        note_groups <- unique(notes[i_type])
+        temp <- lapply(note_groups, function(note) {
+          i_note <- sapply(notes[i_type], function(n) identical(n, unlist(note)))
+          build_location_description(type_strings[i_type][i_note], notes[i_type][i_note], type_sep = type_sep, note_sep = note_sep, frequency = frequency, frequency_in = frequency_in)
+        })
+        paste(temp, collapse = group_sep)
+      }
+    })
+    description <- paste(descriptions, collapse = group_sep)
   }
   return(description)
 }
 
 # Categories --------------
 
-#' Expand Binary Category Mask to Categories
+#' Expand Category Mask to Categories
 #'
+#' @param mask Integer represention of a binary category mask.
+#' @return Vector of category names.
 #' @export
 #' @family Falling Fruit functions
 #' @examples
 #' expand_category_mask(0)
 #' expand_category_mask(3)
-expand_category_mask <- function(category_mask) {
-  Categories[which(as.numeric(intToBits(category_mask)) == 1)]
+expand_category_mask <- function(mask) {
+  Categories[which(as.numeric(intToBits(mask)) == 1)]
 }

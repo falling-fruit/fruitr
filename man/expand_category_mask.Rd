@@ -2,12 +2,18 @@
 % Please edit documentation in R/fallingfruit.R
 \name{expand_category_mask}
 \alias{expand_category_mask}
-\title{Expand Binary Category Mask to Categories}
+\title{Expand Category Mask to Categories}
 \usage{
-expand_category_mask(category_mask)
+expand_category_mask(mask)
+}
+\arguments{
+\item{mask}{Integer represention of a binary category mask.}
+}
+\value{
+Vector of category names.
 }
 \description{
-Expand Binary Category Mask to Categories
+Expand Category Mask to Categories
 }
 \examples{
 expand_category_mask(0)

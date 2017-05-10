@@ -4,19 +4,39 @@
 \alias{build_location_description}
 \title{Build Location Description}
 \usage{
-build_location_description(type_strings, notes = NULL, sep = ". ",
+build_location_description(type_strings, notes = NULL, merge = TRUE,
+  type_sep = ", ", note_sep = ". ", group_sep = "<br>",
   frequency = TRUE, frequency_in = "[]")
 }
-\description{
-Builds a description from its inputs:
-[nx] type string, [yx] type string, ... + sep + notes (those unique and equal for all)
+\arguments{
+\item{type_strings}{Character vector.}
+
+\item{notes}{List of character vectors, each of the same length.}
+
+\item{merge}{Whether to merge types, discarding any notes that are not equal for all types.}
+
+\item{type_sep}{Character string to seperate each element in \code{type_strings} when \code{merge = TRUE}.}
+
+\item{note_sep}{Character string to seperate each retained element in \code{notes}.}
+
+\item{group_sep}{Character string to seperate each grouping when \code{merge = FALSE}.}
+
+\item{frequency}{Whether to display frequency before each element in \code{type_strings}.}
+
+\item{frequency_in}{String of two characters in which to display the frequencies.}
 }
-\details{
-WARNING: Not splitting at commas to support types with commas in them, so type_strings need to be single-type.
+\value{
+Character string of the summarized and concatenated values.
+}
+\description{
+Builds a description from its inputs. When \code{merge} is \code{TRUE}, all content is summarized as one group, and all notes not equal throughout are discarded. Otherwise, all content is preserved and only grouped for equal types with all equal notes.
 }
 \examples{
-build_location_description(c("Apple", "Pear", "Pear"), notes = list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 30 m")))
-build_location_description(c("Apple", "Pear", "Pear"), notes = list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 30 m")), frequency = FALSE)
+type_strings <- c("Apple", "Pear", "Pear")
+notes <- list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 20 m"))
+build_location_description(type_strings, notes)
+build_location_description(type_strings, notes, frequency = FALSE)
+build_location_description(type_strings, notes, merge = FALSE)
 }
 \seealso{
 Other Falling Fruit functions: \code{\link{build_type_strings}},
