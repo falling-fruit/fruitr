@@ -2,36 +2,40 @@
 
 #' Get Falling Fruit (FF) Types
 #'
+#' @param categories Categories of types to include.
+#' @param uncategorized Whether to include uncategorized types.
+#' @param pending Whether to include pending types.
+#' @param urls Whether to include URLs.
+#' @param locale Locale of the vectorized \code{common_names} field (all available name fields are returned).
+#' @return A \code{\link{data.table}} of Falling Fruit types.
 #' @export
 #' @family Falling Fruit functions
 #' @examples
-#' types <- get_ff_types(pending = FALSE)
+#' ff_types <- get_ff_types()
 get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "grafter"), uncategorized = TRUE, pending = TRUE, urls = TRUE, locale = "en") {
-
-  # Pull json from API
-  url <- parse_url("https://fallingfruit.org/api/0.2/types.json")
+  # Retrieve data from API
+  url <- httr::parse_url("https://fallingfruit.org/api/0.2/types.json")
   query <- list(api_key = "***REMOVED***", c = paste(intersect(Categories, categories), collapse = ","), uncategorized = ifelse(uncategorized, 1, 0), pending = ifelse(pending, 1, 0), locale = locale, urls = ifelse(urls, 1, 0))
-  json <- content(GET(url, query = query))
-
-  # Json to data.table
-  json <- replace_values_in_list(json, NULL, NA)
-  dt <- rbindlist(json, fill = TRUE)
+  response <- httr::GET(url, query = query)
+  # Convert JSON to data.table
+  df <- jsonlite::fromJSON(rawToChar(response$content))
+  dt <- data.table::as.data.table(df)
   dt[, order := .I]
-  setkey(dt, id)
-
-  # Numeric and named taxonomic ranks
+  data.table::setkey(dt, id)
+  # Prepare numeric and named taxonomic ranks
   dt[, taxonomic_rank_order := taxonomic_rank]
   dt[, taxonomic_rank := Taxonomic_ranks[taxonomic_rank_order + 1]]
-
-  # Vectorize and join synonyms with primary names
-  dt[, common_names := list(list(na.remove(c(name, strsplit(synonyms, "[ ]*,[ ]*")[[1]])))), by = id]
-  dt[, scientific_names := list(list(na.remove(c(scientific_name, strsplit(scientific_synonyms, "[ ]*,[ ]*")[[1]])))), by = id]
-
-  # Format names
+  # Join synonyms to primary names
+  dt[, scientific_names := lapply(Map(c, strsplit(scientific_name, "\\s*,\\s*"), strsplit(scientific_synonyms, "\\s*,\\s*")), na.remove)]
+  if (locale == "en") {
+    dt[, common_names := lapply(Map(c, strsplit(name, "\\s*,\\s*"), strsplit(synonyms, "\\s*,\\s*")), na.remove)]
+  } else {
+    dt[, common_names := lapply(strsplit(name, "\\s*,\\s*"), na.remove)]
+  }
+  # Format names for matching
   dt[, matched_scientific_names := lapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = FALSE)]
   dt[, matched_cultivars := lapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = TRUE)]
-
-  # Return types as data.table
+  # Return types as as data.table
   return(dt)
 }
 
@@ -39,6 +43,14 @@ get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "graft
 
 #' Build Type Strings
 #'
+#' Builds type strings from component parts.
+#'
+#' @param ids Integer vector.
+#' @param common_names Character vector.
+#' @param scientific_names Character vector.
+#' @param notes Character vector.
+#' @param science_in String of two characters in which to display \code{scientific_names}.
+#' @return Character vector of type strings.
 #' @export
 #' @family Falling Fruit functions
 #' @examples
@@ -48,13 +60,11 @@ get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "graft
 #' build_type_strings(c(1, 2), c("Apple", "Pear"), c("Malus domestica", "Pyrus communis"))
 #' build_type_strings(1, "Apple", "Malus pumila", "fr: Pommier commun")
 build_type_strings <- function(ids = NULL, common_names = NULL, scientific_names = NULL, notes = NULL, science_in = "[]") {
-
   # Replace empty with blank strings
   ids[is.empty(ids)] <- ""
   common_names[is.empty(common_names)] <- ""
   scientific_names[is.empty(scientific_names)] <- ""
   notes[is.empty(notes)] <- ""
-
   # Build type strings
   type_strings <- clean_strings(paste0(ids, ": ", common_names, " ", substr(science_in, 1, 1), scientific_names, substr(science_in, 2, 2), " {", notes, "}"))
   type_strings <- gsub("(:\\s*$)|(^: )|(\\s*\\{\\})", "", type_strings)
@@ -63,11 +73,16 @@ build_type_strings <- function(ids = NULL, common_names = NULL, scientific_names
 
 #' Parse Type Strings
 #'
+#' Parses type strings into their component parts.
+#'
+#' @param type_strings Character vector of type strings.
+#' @return List of lists with id, name, and scientific name.
 #' @export
 #' @family Falling Fruit functions
 #' @examples
-#' type_strings <- build_type_strings(c(1, 2), c("Apple", "Pear"), c("Malus domestica", "Pyrus communis"))
-#' str(parse_type_strings(type_strings))
+#' parse_type_strings("14")
+#' parse_type_strings("Apple [Malus pumila]")
+#' parse_type_strings("14: Apple [Malus pumila]")
 parse_type_strings <- function(type_strings) {
   if (length(type_strings)) {
     substrings <- stringr::str_match(type_strings, "^([0-9]+)?[:\\s]*([^\\[\\{]+?)?[\\s]*(\\[(.+)\\])?[\\s]*(\\{(.+)\\})?$")
@@ -79,33 +94,42 @@ parse_type_strings <- function(type_strings) {
 
 #' Match Type Strings to Types
 #'
+#' Returns the ids of the Falling Fruit types matching each type string.
+#'
+#' @param type_strings Character vector of type strings.
+#' @param types Falling Fruit types.
+#' @return List of Falling Fruit type ids matching each element in \code{type_strings}.
 #' @export
 #' @family Falling Fruit functions
 #' @examples
-#' types <- get_ff_types()
-#' match_type_strings("Apple", types)
-#' match_type_strings(c("Apple [Malus domestica]", "Pear [Pyrus]"), types)
-match_type_strings <- function(type_strings, types = get_ff_types(pending = FALSE, urls = FALSE), simplify = FALSE) {
+#' ff_types <- get_ff_types()
+#' match_type_strings("Apple", ff_types)
+#' match_type_strings(c("Apple [Malus domestica]", "Pear [Pyrus]"), ff_types)
+match_type_strings <- function(type_strings, types = get_ff_types(pending = FALSE, urls = FALSE)) {
   ts <- parse_type_strings(type_strings)
-  matches <- sapply(ts, function(t) {
+  matches <- lapply(ts, function(t) {
     types[(is.na(t$id) | id == t$id) & (is.na(t$name) | name == t$name) & (is.na(t$scientific_name) | scientific_name == t$scientific_name), id]
-  }, simplify = simplify)
+  })
   return(matches)
 }
 
 #' Normalize Type Strings
 #'
+#' Checks type strings against Falling Fruit types and fills in any missing components.
+#'
+#' @param type_strings Character vector of type strings as comma-delimited lists.
+#' @param types Falling Fruit types
+#' @return Character vector of complete type strings as comma-delimited lists.
 #' @export
 #' @family Falling Fruit functions
 #' @examples
-#' types <- get_ff_types()
-#' normalize_type_strings("Apple", types)
-#' normalize_type_strings(c("14", "Apple [Malus]"), types)
-#' normalize_type_strings(c("", " ,", NA), types)
-#' normalize_type_strings(c("14: Apple, 14: Apple"), types)
-#' normalize_type_strings("Hello World", types)
-normalize_type_strings <- function(type_strings, types) {
-
+#' ff_types <- get_ff_types()
+#' normalize_type_strings("Apple", ff_types)
+#' normalize_type_strings(c("14", "Apple [Malus]"), ff_types)
+#' normalize_type_strings(c("", " ,", NA), ff_types)
+#' normalize_type_strings(c("14: Apple, 14: Apple"), ff_types)
+#' normalize_type_strings("Hello World", ff_types)
+normalize_type_strings <- function(type_strings, types = get_ff_types(pending = FALSE, urls = FALSE)) {
   # Strip notes
   type_strings <- gsub("\\s*\\{.*\\}", "", type_strings)
   # Verify type strings
@@ -133,7 +157,6 @@ normalize_type_strings <- function(type_strings, types) {
   if (sum(is_invalid) > 0) {
     stop("Invalid type strings found.")
   }
-
   # Standardize type strings
   ids <- unlist(matches[n_matches == 1])
   if (length(ids) > 0) {
