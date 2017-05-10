@@ -377,22 +377,61 @@ subset_search_results <- function(strings, values, ignore.case = TRUE) {
 
 # Datum Conversions --------------
 
-#' Convert Swiss Projection CH1903 (E, N) to WGS84 (lng, lat)
+#' Transform Spatial Coordinates
 #'
-#' See http://www.swisstopo.admin.ch/internet/swisstopo/de/home/topics/survey/sys/refsys/switzerland.parsysrelated1.24280.downloadList.87003.DownloadFile.tmp/ch1903wgs84de.pdf (but switch x and y)
-#'
-#' @family helper functions
+#' @param xy Rows of coordinates (x, y).
+#' @param from Initial projection as numeric (EPSG code), character (proj4 string), or \code{\link[sp]{CRS}}.
+#' @param to Target projection as numeric (EPSG code), character (proj4 string), or \code{\link[sp]{CRS}}.
+#' @return Transformed coordinates coerced to the same class as \code{xy}.
 #' @export
+#' @seealso \code{\link[sp]{spTransform}}
+#' @family helper functions
 #' @examples
-#' ch1903_to_wgs84(0, 1000)
-ch1903_to_wgs84 <- function(x, y = NULL) {
-  if (is.null(y)) {
-    X <- as.matrix(x)
-  } else {
-    X <- as.matrix(cbind(x, y))
+#' from <- 21781
+#' to <- 4326
+#' sptransform(sptransform(c(500, 1000), from, to), to, from)
+sptransform <- function(xy, from = tryCatch(sp::proj4string(xy)), to = 4326) {
+  if (!is(from, "CRS")) {
+    if (is.numeric(from)) {
+      from <- sp::CRS(paste0("+init=epsg:", from))
+    } else {
+      from <- sp::CRS(from)
+    }
   }
-  x <- (X[, 1] - 6e5) / 1e6
-  y <- (X[, 2] - 2e5) / 1e6
+  if (is.numeric(to)) {
+    to <- sp::CRS(paste0("+init=epsg:", to))
+  } else {
+    to <- sp::CRS(to)
+  }
+  xy_class <- class(xy)
+  if (is.vector(xy)) {
+    xy <- t(xy[1:2])
+  }
+  xy <- as.data.frame(xy)
+  sp::coordinates(xy) <- names(xy)[1:2]
+  sp::proj4string(xy) <- from
+  txy <- sp::spTransform(xy, to)
+  return(as(txy@coords, xy_class))
+}
+
+#' Transform CH1903 to WGS84 Coordinates
+#'
+#' Converts Swiss Projection CH1903 projected coordinates (\href{http://spatialreference.org/ref/epsg/21781/}{EPSG:21781}) to WGS84 geographic coordinates (\href{http://spatialreference.org/ref/epsg/wgs-84/}{EPSG:4326}).
+#'
+#' @param xy Swiss Projection CH1903 coordinates (easting, northing).
+#' @return WGS84 coordinates (longitude, latitude).
+#' @family helper functions
+#' @source \url{http://www.swisstopo.admin.ch/internet/swisstopo/de/home/topics/survey/sys/refsys/switzerland.parsysrelated1.24280.downloadList.87003.DownloadFile.tmp/ch1903wgs84de.pdf} (but switch x and y).
+#' @export
+#' @family helper functions
+#' @examples
+#' ch1903_to_wgs84(c(0, 1000))
+ch1903_to_wgs84 <- function(xy) {
+  if (is.vector(xy)) {
+    xy <- t(xy[1:2])
+  }
+  x <- (xy[, 1] - 6e5) / 1e6
+  y <- (xy[, 2] - 2e5) / 1e6
   lng <- (2.6779094 + 4.728982 * x + 0.791484 * x * y + 0.1306 * x * y^2 - 0.0436 * x^3) * (100 / 36)
   lat <- (16.9023892 + 3.238272 * y - 0.270978 * x^2 - 0.002528 * y^2 - 0.0447 * x^2 * y - 0.014 * y^3) * (100 / 36)
   return(cbind(lng, lat))

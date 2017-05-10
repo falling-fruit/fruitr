@@ -7,11 +7,25 @@
 get_ff_types(categories = c("forager", "freegan", "honeybee", "grafter"),
   uncategorized = TRUE, pending = TRUE, urls = TRUE, locale = "en")
 }
+\arguments{
+\item{categories}{Categories of types to include.}
+
+\item{uncategorized}{Whether to include uncategorized types.}
+
+\item{pending}{Whether to include pending types.}
+
+\item{urls}{Whether to include URLs.}
+
+\item{locale}{Locale of the vectorized \code{common_names} field (all available name fields are returned).}
+}
+\value{
+A \code{\link{data.table}} of Falling Fruit types.
+}
 \description{
 Get Falling Fruit (FF) Types
 }
 \examples{
-types <- get_ff_types(pending = FALSE)
+ff_types <- get_ff_types()
 }
 \seealso{
 Other Falling Fruit functions: \code{\link{build_location_description}},

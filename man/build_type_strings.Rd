@@ -7,8 +7,22 @@
 build_type_strings(ids = NULL, common_names = NULL,
   scientific_names = NULL, notes = NULL, science_in = "[]")
 }
+\arguments{
+\item{ids}{Integer vector.}
+
+\item{common_names}{Character vector.}
+
+\item{scientific_names}{Character vector.}
+
+\item{notes}{Character vector.}
+
+\item{science_in}{String of two characters in which to display \code{scientific_names}.}
+}
+\value{
+Character vector of type strings.
+}
 \description{
-Build Type Strings
+Builds type strings from component parts.
 }
 \examples{
 build_type_strings(1, "Apple")

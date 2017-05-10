@@ -26,6 +26,7 @@ Other helper functions: \code{\link{ch1903_to_wgs84}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
   \code{\link{na.remove}},
   \code{\link{replace_values_in_list}},
+  \code{\link{sptransform}},
   \code{\link{subset_search_results}},
   \code{\link{unique_na}}
 }

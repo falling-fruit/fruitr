@@ -2,15 +2,24 @@
 % Please edit documentation in R/helpers.R
 \name{ch1903_to_wgs84}
 \alias{ch1903_to_wgs84}
-\title{Convert Swiss Projection CH1903 (E, N) to WGS84 (lng, lat)}
+\title{Transform CH1903 to WGS84 Coordinates}
+\source{
+\url{http://www.swisstopo.admin.ch/internet/swisstopo/de/home/topics/survey/sys/refsys/switzerland.parsysrelated1.24280.downloadList.87003.DownloadFile.tmp/ch1903wgs84de.pdf} (but switch x and y).
+}
 \usage{
-ch1903_to_wgs84(x, y = NULL)
+ch1903_to_wgs84(xy)
+}
+\arguments{
+\item{xy}{Swiss Projection CH1903 coordinates (easting, northing).}
+}
+\value{
+WGS84 coordinates (longitude, latitude).
 }
 \description{
-See http://www.swisstopo.admin.ch/internet/swisstopo/de/home/topics/survey/sys/refsys/switzerland.parsysrelated1.24280.downloadList.87003.DownloadFile.tmp/ch1903wgs84de.pdf (but switch x and y)
+Converts Swiss Projection CH1903 projected coordinates (\href{http://spatialreference.org/ref/epsg/21781/}{EPSG:21781}) to WGS84 geographic coordinates (\href{http://spatialreference.org/ref/epsg/wgs-84/}{EPSG:4326}).
 }
 \examples{
-ch1903_to_wgs84(0, 1000)
+ch1903_to_wgs84(c(0, 1000))
 }
 \seealso{
 Other helper functions: \code{\link{clean_strings}},
@@ -21,6 +30,19 @@ Other helper functions: \code{\link{clean_strings}},
   \code{\link{na.remove}},
   \code{\link{normalize_language}},
   \code{\link{replace_values_in_list}},
+  \code{\link{sptransform}},
+  \code{\link{subset_search_results}},
+  \code{\link{unique_na}}
+
+Other helper functions: \code{\link{clean_strings}},
+  \code{\link{expand_list_by_split}},
+  \code{\link{format_addresses}},
+  \code{\link{format_scientific_names}},
+  \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
+  \code{\link{na.remove}},
+  \code{\link{normalize_language}},
+  \code{\link{replace_values_in_list}},
+  \code{\link{sptransform}},
   \code{\link{subset_search_results}},
   \code{\link{unique_na}}
 }

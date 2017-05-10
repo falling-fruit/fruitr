@@ -38,5 +38,5 @@ Other helper functions: \code{\link{ch1903_to_wgs84}},
   \code{\link{na.remove}},
   \code{\link{normalize_language}},
   \code{\link{replace_values_in_list}},
-  \code{\link{unique_na}}
+  \code{\link{sptransform}}, \code{\link{unique_na}}
 }
