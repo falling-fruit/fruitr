@@ -22,25 +22,27 @@ Converts Swiss Projection CH1903 projected coordinates (\href{http://spatialrefe
 ch1903_to_wgs84(c(0, 1000))
 }
 \seealso{
-Other helper functions: \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{clean_strings}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
   \code{\link{na.remove}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},
   \code{\link{unique_na}}
 
-Other helper functions: \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{clean_strings}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
   \code{\link{na.remove}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},

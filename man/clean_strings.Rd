@@ -6,20 +6,30 @@
 \usage{
 clean_strings(x)
 }
+\arguments{
+\item{x}{Character vector.}
+}
+\value{
+Character vector of the same length as \code{x}.
+}
 \description{
-Performs general string cleaning operations.
+Performs generic string cleaning operations.
 }
 \examples{
-clean_strings(" ..[] Hello,,  `world`.. how are you?() ")
+clean_strings("[](){}")
+clean_strings("``''\\"\\"")
+clean_strings("..,,")
+clean_strings(" Hello,,  `world`.. how are you?()")
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
-  \code{\link{expand_list_by_split}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
   \code{\link{na.remove}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},

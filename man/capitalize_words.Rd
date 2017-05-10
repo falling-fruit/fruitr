@@ -2,12 +2,41 @@
 % Please edit documentation in R/helpers.R
 \name{capitalize_words}
 \alias{capitalize_words}
-\title{Capitalize Words
-Skips numbers at start of words (e.g. 3-in-1 pear).}
+\title{Capitalize Words}
 \usage{
 capitalize_words(x, strict = FALSE, first = FALSE)
 }
+\arguments{
+\item{x}{Character vector.}
+
+\item{strict}{Whether to lowercase characters not being capitalized.}
+
+\item{first}{Whether to only capitalize the first word.}
+}
+\value{
+Character vector of the same length as \code{x}.
+}
 \description{
-Capitalize Words
-Skips numbers at start of words (e.g. 3-in-1 pear).
+Capitalizes words in character strings.
+}
+\examples{
+x <- "hello wORLd"
+capitalize_words(x)
+capitalize_words(x, first = TRUE)
+capitalize_words(x, strict = TRUE)
+capitalize_words("3-in-1 pear", first = TRUE)
+}
+\seealso{
+Other helper functions: \code{\link{ch1903_to_wgs84}},
+  \code{\link{clean_strings}},
+  \code{\link{format_addresses}},
+  \code{\link{format_scientific_names}},
+  \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
+  \code{\link{na.remove}},
+  \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
+  \code{\link{replace_values_in_list}},
+  \code{\link{sptransform}},
+  \code{\link{subset_search_results}},
+  \code{\link{unique_na}}
 }

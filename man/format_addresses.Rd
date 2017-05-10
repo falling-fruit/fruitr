@@ -6,20 +6,30 @@
 \usage{
 format_addresses(x)
 }
+\arguments{
+\item{x}{Character vector.}
+}
+\value{
+Ideally, correctly formatted addresses.
+}
 \description{
-Format Addresses
+Attempts to clean and format addresses names by the following convention:\cr
+<Number> <SE|SW|NE|NW> <Street McName> <Ave|*>
 }
 \examples{
 format_addresses("123 SE. MCDONALD AV")
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
+\code{\link{clean_strings}} for generic string cleaning.
+
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
   \code{\link{na.remove}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},

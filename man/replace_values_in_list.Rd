@@ -6,25 +6,35 @@
 \usage{
 replace_values_in_list(x, old, new)
 }
+\arguments{
+\item{x}{List object.}
+
+\item{old}{List or vector of values to replace.}
+
+\item{new}{List or vector of replacement values.}
+}
+\value{
+A list with values replaced.
+}
 \description{
-Replace Values in List
+Iterates through a list and replaces values with replacements.
 }
 \examples{
-x <- list(NULL, list(NULL, NA))
+str(x <- list(NULL, list(NULL, NA, 2)))
 str(replace_values_in_list(x, NULL, 1))
 str(replace_values_in_list(x, list(NULL, NA), 1))
 str(replace_values_in_list(x, list(NULL, NA), list(1, 2)))
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
   \code{\link{format_addresses}},
   \code{\link{format_scientific_names}},
   \code{\link{is.empty}}, \code{\link{melt_by_listcol}},
   \code{\link{na.remove}},
   \code{\link{normalize_language}},
-  \code{\link{sptransform}},
+  \code{\link{quotemeta}}, \code{\link{sptransform}},
   \code{\link{subset_search_results}},
   \code{\link{unique_na}}
 }

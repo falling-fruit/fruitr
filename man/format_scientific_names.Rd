@@ -2,12 +2,23 @@
 % Please edit documentation in R/helpers.R
 \name{format_scientific_names}
 \alias{format_scientific_names}
-\title{Format Specialty Strings}
+\title{Format Scientific Names}
 \usage{
 format_scientific_names(x, connecting_terms = TRUE, cultivars = TRUE)
 }
+\arguments{
+\item{x}{Character vector.}
+
+\item{connecting_terms}{Whether to retain connecting terms (e.g. "subsp.", "var.").}
+
+\item{cultivars}{Whether to retain cultivar names (e.g. "'Bradford'").}
+}
+\value{
+Ideally, correctly formatted scientific names.
+}
 \description{
-Supports species common names, latin names, and addresses.
+Attempts to clean and format scientific names by the following convention:\cr
+<Genus|Taxon> <species> (<subg|subsp|var|f|subvar|subf>. <subspecies name>) <Author Citation> 'Cultivar'
 }
 \examples{
 format_scientific_names("Malus")
@@ -19,14 +30,18 @@ format_scientific_names("Malus ×domestica var. gala", connecting_terms = FALSE)
 format_scientific_names("Malus pumila 'gala'", cultivars = TRUE)
 format_scientific_names("Malus pumila 'gala'", cultivars = FALSE)
 format_scientific_names("Prunus subg amygdalus")
+format_scientific_names("Malus ×", connecting_terms = FALSE)
 }
 \seealso{
-Other helper functions: \code{\link{ch1903_to_wgs84}},
+\code{\link{clean_strings}} for generic string cleaning.
+
+Other helper functions: \code{\link{capitalize_words}},
+  \code{\link{ch1903_to_wgs84}},
   \code{\link{clean_strings}},
-  \code{\link{expand_list_by_split}},
   \code{\link{format_addresses}}, \code{\link{is.empty}},
   \code{\link{melt_by_listcol}}, \code{\link{na.remove}},
   \code{\link{normalize_language}},
+  \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
   \code{\link{sptransform}},
   \code{\link{subset_search_results}},
