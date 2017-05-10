@@ -2,19 +2,29 @@
 % Please edit documentation in R/clusters.R
 \name{gridcells_to_geohashes}
 \alias{gridcells_to_geohashes}
-\title{Convert Grid Cell Indices to Geohash}
+\title{Convert Grid Cell Indices to Geohashes}
 \usage{
-gridcells_to_geohashes(grid_cells)
+gridcells_to_geohashes(xyz)
+}
+\arguments{
+\item{grid_cells}{Rows of Web Mercator grid cell indices (x, y, zoom).}
+}
+\value{
+A character vector of geohashes.
 }
 \description{
-Convert Grid Cell Indices to Geohash
+Converts Web Mercator (\href{http://spatialreference.org/ref/sr-org/7483/}{EPSG:3857}) quadtree grid cell indices to binary geohashes.
 }
 \examples{
-gridcells_to_geohashes(cbind(0, 1, 1))
+xi <- c(0, 0, 1, 0)
+yi <- c(0, 1, 1, 0)
+zoom <- c(0, 1, 1, 2)
+xyz <- cbind(xi, yi, zoom)
+gridcells_to_geohashes(xyz)
 }
 \seealso{
 Other cluster functions: \code{\link{expand_geohashes}},
-  \code{\link{geohashes_to_latlng}}, \code{\link{itostr}},
-  \code{\link{latlng_to_geohashes}},
-  \code{\link{latlng_to_gridcells}}
+  \code{\link{geohashes_to_gridcells}},
+  \code{\link{gridcells_to_lnglat}}, \code{\link{itostr}},
+  \code{\link{lnglat_to_gridcells}}
 }
