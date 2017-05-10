@@ -12,11 +12,15 @@ Expand Geohashes
 \examples{
 expand_geohashes("0011")
 expand_geohashes(c("0011", "110011"))
-geohashes_to_latlng(expand_geohashes(latlng_to_geohashes(12.34, 153.21, 31)))
+xyz <- lnglat_to_gridcells(c(123.4567, 12.3456), 31)
+geohashes <- gridcells_to_geohashes(xyz)
+exyz <- geohashes_to_gridcells(expand_geohashes(geohashes))
+lnglat <- gridcells_to_lnglat(exyz)
+cbind(exyz, lnglat)
 }
 \seealso{
-Other cluster functions: \code{\link{geohashes_to_latlng}},
+Other cluster functions: \code{\link{geohashes_to_gridcells}},
   \code{\link{gridcells_to_geohashes}},
-  \code{\link{itostr}}, \code{\link{latlng_to_geohashes}},
-  \code{\link{latlng_to_gridcells}}
+  \code{\link{gridcells_to_lnglat}}, \code{\link{itostr}},
+  \code{\link{lnglat_to_gridcells}}
 }

@@ -4,19 +4,33 @@
 \alias{itostr}
 \title{Convert Integers to Strings}
 \usage{
-itostr(x, base = 2, n_bits = 32)
+itostr(x, base = 10L, nchars = 0L)
+}
+\arguments{
+\item{x}{Integer vector, or something coercible to this by \code{\link[base]{as.integer}}.}
+
+\item{base}{Integer between 2 and 11 inclusive.}
+
+\item{nchars}{Minimum number of characters desired. Shorter strings are left-padded with zeros.}
+}
+\value{
+A character vector of the same length as \code{x}.
 }
 \description{
-Converts integers to strings according to the given base and the number of digits. Shorter strings are right-padded with zero. Reverse with base::strtoi().
+Converts integers to strings by the given base and character count.
 }
 \examples{
-itostr(123, base = 2)
-strtoi(itostr(123), base = 2)
+itostr(123, nchars = 4)
+strtoi(itostr(123, base = 2), base = 2)
+itostr(c(0, 1, 2, 10), base = 2)
+itostr(c(0, 1, 2, 10), base = 2, nchars = 4)
 }
 \seealso{
+\code{\link[base]{strtoi}} for the reverse conversion.
+
 Other cluster functions: \code{\link{expand_geohashes}},
-  \code{\link{geohashes_to_latlng}},
+  \code{\link{geohashes_to_gridcells}},
   \code{\link{gridcells_to_geohashes}},
-  \code{\link{latlng_to_geohashes}},
-  \code{\link{latlng_to_gridcells}}
+  \code{\link{gridcells_to_lnglat}},
+  \code{\link{lnglat_to_gridcells}}
 }
