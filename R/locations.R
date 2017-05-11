@@ -301,7 +301,7 @@ merge_overlapping_locations <- function(dt, frequency = TRUE, note_sep = ". ") {
   merged <- dt[, .(
     ids = paste(na.omit(unique(id)), collapse = ", "),
     types = paste(na.omit(unique(types)), collapse = ", "),
-    description = build_location_description(description, notes, sep = note_sep, frequency = frequency),
+    description = build_location_description(description, notes, note_sep = note_sep, frequency = frequency),
     # FIXME: May not work for seasons spanning two calendar years.
     season.start = if (all(is.na(season.start))) NA_integer_ else as.integer(min(season.start, na.rm = TRUE)),
     season.stop = if (all(is.na(season.stop))) NA_integer_ else as.integer(max(season.stop, na.rm = TRUE)),
