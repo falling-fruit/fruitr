@@ -118,7 +118,7 @@ unique_na <- function(x, na.rm = FALSE) {
 #'
 #' @param dt data.table.
 #' @param column Name or index of list column.
-#' @return A data.table with rows added to accomodate the expansion of the list column.
+#' @return A data.table with rows added to accommodate the expansion of the list column.
 #' @export
 #' @family helper functions
 #' @examples
