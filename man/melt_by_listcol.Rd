@@ -12,7 +12,7 @@ melt_by_listcol(dt, column)
 \item{column}{Name or index of list column.}
 }
 \value{
-A data.table with rows added to accomodate the expansion of the list column.
+A data.table with rows added to accommodate the expansion of the list column.
 }
 \description{
 Expands a list column in a data.table to an atomic vector, adding rows as necessary.

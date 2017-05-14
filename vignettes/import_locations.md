@@ -41,10 +41,10 @@ For scientific names, Falling Fruit follows these conventions:
   * Hybrid: `Prunus x eminens`, `Prunus cerasus x Prunus fruticosa`
   * Cultivar: `Prunus persica 'George IV'`, `Prunus domestica subsp. domestica 'Italian'`, `Acer truncatum x platanoides 'Keithsform'`
 
-For matching, connecting terms (` x `, ` subsp. `, ...) are always removed, while cultivars (`'.*'`) can be either removed or retained. Although it should work in most cases,  `fruitr::format_scientific_names()` may fail for your particular data. You should inspect the results:
+For matching, connecting terms (` x `, ` subsp. `, ...) must be removed, while cultivars (`'.*'`) can be either removed or retained. Although it should work in most cases, `fruitr::format_scientific_names()` may fail for your particular data. You should inspect the results:
 
 ```R
-unique(cbind(dt[["SCIENTIFIC_NAME"]], matched_scientific_name))
+unique(cbind(dt[["SCIENTIFIC_NAME"]], matched_scientific_names))
 ```
 
 If you have unexpected results, report the issue, edit the function and make a pull request, or build a custom solution starting from `fruitr::clean_strings()`.
@@ -85,7 +85,7 @@ Where the matched Falling Fruit types are displayed using the following conventi
 
 ### Edit type assignments
 
-Assign groupings to Falling Fruit type(s) by filling in the `types` column with Falling Fruit types following the format above (e.g. `114`, `114: Apple [Malus]`). If the type does not already exist (e.g. `New common [New scientific]`), a new type will be created on import. Tag a grouping as unverified by entering `x` into the `unverified` column. You can record new names by appending them using the format `{locale: name}` (e.g. `14: Apple [Malus pumila] {scientific: Malus paradisiaca, en: Paradise apple, Common apple}`), although this is currrently unused.
+Assign groupings to Falling Fruit type(s) by entering them into the `types` column, as a comma-delimited list, following the format above (e.g. `114`, `114: Apple [Malus]`). If the type does not already exist (e.g. `New common [New scientific]`), a new type will be created on import. Tag a grouping as unverified by entering `x` into the `unverified` column. You can record new names by appending them using the format `{locale: name}` (e.g. `14: Apple [Malus pumila] {scientific: Malus paradisiaca, en: Paradise apple, Common apple}`), although this is currrently unused.
 
 As needed, reference the Falling Fruit type taxonomy at [fallingfruit.org/types](https://fallingfruit.org/types) (admin-only).
 
@@ -145,7 +145,7 @@ dt[, author := NA_character_]
 
 #### `description`
 
-Information displayed in the location infobox. `<br>` (HTML line breaks) are converted to `\n` (newline) characters. No other markup is currently supported. For imported data, this is typically used to contain the fields used for matching to Falling Fruit types, formatted with `fruitr::build_type_strings()`. Additional information is added to `notes` (see below).
+Information displayed in the location infobox. `<br>` (HTML line breaks) are converted to `\n` (newline) characters. No other markup is currently supported. For imported data, this should be used to contain the fields used for matching to Falling Fruit types (e.g. formatted with `fruitr::build_type_strings()`) as `description` is later passed as the `types` argument in `fruitr::build_location_descriptions()`. Additional information is added to `notes` (see below).
 
 ```R
 common_names <- fruitr::clean_strings(dt[["COMMON_NAME"]]) # or NULL
@@ -155,7 +155,7 @@ dt[, description := fruitr::build_type_strings(ids = NULL, common_names, scienti
 
 #### `notes`
 
-Vector of strings appended to the description by `fruitr::build_location_description()`. When overlapping locations are merged, the resulting description is: `[nx] type string, [ny] type string, ... + notes` (those unique and equal for all).
+Vector of additional strings later appended to the description by `fruitr::build_location_descriptions()`.
 
 ```R
 dt[, notes := Map(list, NA_character_)]
@@ -217,11 +217,13 @@ dt[, photo.url := NA_character_]
 
 ### Merge overlapping locations
 
-Since Falling Fruit does not support multiple locations at the same exact location, these need to be merged together before import with `fruitr::merge_overlapping_locations()`:
+Since Falling Fruit does not support overlapping locations, these need to be merged together before import with `fruitr::merge_overlapping_locations()`:
 
 ```R
-mdt <- fruitr::merge_overlapping_locations(dt, frequency = TRUE, note_sep = ". ")
+mdt <- fruitr::merge_overlapping_locations(dt)
 ```
+
+Additional arguments are passed to `fruitr::build_location_descriptions()`, the function responsible for constructing the final description by appending notes from single or overlapping locations. In particular, `merge` (default: `FALSE`) determines whether only the `notes` unique for all locations are preserved.
 
 ### Write file for import
 

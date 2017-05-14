@@ -143,7 +143,7 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
   # Return simplified matches
   } else {
     merged <- data.table::rbindlist(match_tables)
-    expanded <- merged[rep(seq_len(nrow(merged)), sapply(id, length))][, id := unlist(merged$id)]
+    expanded <- melt_by_listcol(merged, "id")
     # NOTE: Strange CHARSXP errors appearing on matches, using ifelse() to avoid
     matches <- switch(simplify[1],
       first = expanded[, .(
@@ -260,16 +260,27 @@ apply_match_table <- function(dt, match_table, drop = FALSE, types = get_ff_type
 
 #' Aggregate Locations by Position
 #'
-#' NOTE: Multi-type locations may need to be split before being merged (see \code{\link{build_location_description}}).
+#' Falling Fruit does not support overlapping locations. This function merges locations with the same \code{lat}, \code{lng} or \code{address} by the methods described in Details.
+#'
+#' The following aggregation is applied to all non-missing values for each field:
+#'
+#' \itemize{
+#'   \item \code{ids, types, author} - Comma-delimited list of all unique values.
+#'   \item \code{description} - Result of \code{\link{build_location_descriptions}(types = description, notes = notes)}.
+#'   \item \code{season.start} - Minimum value.
+#'   \item \code{season.stop} - Maximum value.
+#'   \item \code{unverified} - True ('x') if any are true.
+#'   \item \code{yield.rating, quality.rating} - Rounded mean of all values.
+#'   \item \code{photo.url} - First value.
+#' }
 #'
 #' @param dt Locations data.
-#' @param frequency Whether to include the number of each types in the description.
-#' @param sep Character string to seperate the retained notes.
+#' @param ... Arguments passed to \code{\link{build_location_descriptions}}.
 #' @export
 #' @family location import functions
-merge_overlapping_locations <- function(dt, frequency = TRUE, note_sep = ". ") {
+merge_overlapping_locations <- function(dt, ...) {
 
-  ## Select position fields
+  # Select position fields
   if (all(c("lat", "lng") %in% names(dt))) {
     position_fields <- c("lat", "lng")
   } else if ("address" %in% names(dt)) {
@@ -278,7 +289,7 @@ merge_overlapping_locations <- function(dt, frequency = TRUE, note_sep = ". ") {
     stop("No position fields found (lat,lng | address).")
   }
 
-  ## Add missing fields
+  # Add missing fields
   dt <- data.table::copy(dt)
   fields <- gsub(" ", ".", tolower(Location_import_fields))
   missing_fields <- setdiff(c(fields, "notes"), names(dt))
@@ -286,22 +297,19 @@ merge_overlapping_locations <- function(dt, frequency = TRUE, note_sep = ". ") {
     dt[, (missing_fields) := NA_character_]
   }
 
-  ## Cast field types
-  # Convert notes to list
+  # Cast field types
   if (!is.list(dt$notes)) {
     dt[, notes := as.list(notes)]
   }
-  # Convert id to character (for ifelse/paste in next step)
   if (!is.character(dt$id)) {
     dt[, id := as.character(id)]
   }
 
   # Merge locations by position fields
-  # NOTE: Multi-type locations should be split apart before being joined together here (see build_location_description).
   merged <- dt[, .(
     ids = paste(na.omit(unique(id)), collapse = ", "),
     types = paste(na.omit(unique(types)), collapse = ", "),
-    description = build_location_description(description, notes, note_sep = note_sep, frequency = frequency),
+    description = build_location_descriptions(description, notes, ...),
     # FIXME: May not work for seasons spanning two calendar years.
     season.start = if (all(is.na(season.start))) NA_integer_ else as.integer(min(season.start, na.rm = TRUE)),
     season.stop = if (all(is.na(season.stop))) NA_integer_ else as.integer(max(season.stop, na.rm = TRUE)),
@@ -311,7 +319,6 @@ merge_overlapping_locations <- function(dt, frequency = TRUE, note_sep = ". ") {
     yield.rating = if (all(is.na(yield.rating))) NA_integer_ else as.integer(round(mean(yield.rating, na.rm = TRUE))),
     quality.rating = if (all(is.na(quality.rating))) NA_integer_ else as.integer(round(mean(quality.rating, na.rm = TRUE))),
     author = paste(na.omit(unique(author)), collapse = ", "),
-    # FIXME: Import only supports one photo URL.
     photo.url = photo.url[1]
   ), by = position_fields]
 

@@ -171,11 +171,11 @@ normalize_type_strings <- function(type_strings, types = get_ff_types(pending = 
 
 # Locations --------------
 
-#' Build Location Description
+#' Build Location Descriptions
 #'
 #' Builds a description from its inputs. When \code{merge} is \code{TRUE}, all content is summarized as one group, and all notes not equal throughout are discarded. Otherwise, all content is preserved and only grouped for equal types with all equal notes.
 #'
-#' @param type_strings Character vector.
+#' @param type_strings Character vector interpreted literally (comma-delimited lists are not split).
 #' @param notes List of character vectors, each of the same length.
 #' @param merge Whether to merge types, discarding any notes that are not equal for all types.
 #' @param type_sep Character string to seperate each element in \code{type_strings} when \code{merge = TRUE}.
@@ -189,40 +189,39 @@ normalize_type_strings <- function(type_strings, types = get_ff_types(pending = 
 #' @examples
 #' type_strings <- c("Apple", "Pear", "Pear")
 #' notes <- list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 20 m"))
-#' build_location_description(type_strings, notes)
-#' build_location_description(type_strings, notes, frequency = FALSE)
-#' build_location_description(type_strings, notes, merge = FALSE)
-build_location_description <- function(type_strings, notes = NULL, merge = TRUE, type_sep = ", ", note_sep = ". ", group_sep = "<br>", frequency = TRUE, frequency_in = "[]") {
+#' build_location_descriptions(type_strings, notes)
+#' build_location_descriptions(type_strings, notes, merge = TRUE)
+build_location_descriptions <- function(type_strings, notes = NULL, merge = FALSE, type_sep = ", ", note_sep = ". ", group_sep = "<br>", frequency = TRUE, frequency_in = "[]") {
   if (merge || is.null(notes)) {
     frequencies <- summary(as.factor(unlist(type_strings)))
     if (frequency) {
-      description <- paste0(substr(frequency_in, 1, 1), frequencies, "x", substr(frequency_in, 2, 2), " ", attr(frequencies, "names"), collapse = type_sep)
+      descriptions <- paste0(substr(frequency_in, 1, 1), frequencies, "x", substr(frequency_in, 2, 2), " ", attr(frequencies, "names"), collapse = type_sep)
     } else {
-      description <- paste0(attr(frequencies, "names"), collapse = type_sep)
+      descriptions <- paste0(attr(frequencies, "names"), collapse = type_sep)
     }
     notes <- lapply(do.call(Map, c(base::c, notes)), unique_na)
     notes <- notes[!is.empty(notes)]
     if (length(notes) > 0) {
-      description <- paste0(paste(description, paste(notes, collapse = note_sep), sep = note_sep), gsub("\\s*$", "", note_sep))
+      descriptions <- paste0(paste(descriptions, paste(notes, collapse = note_sep), sep = note_sep), gsub("\\s*$", "", note_sep))
     }
   } else {
     types <- unique(unlist(type_strings))
-    descriptions <- lapply(types, function(type) {
+    description <- lapply(types, function(type) {
       i_type <- type_strings == type
       if (length(i_type) == 1) {
-        build_location_description(type_strings[i_type], notes[i_type], type_sep = type_sep, note_sep = note_sep, frequency = frequency, frequency_in = frequency_in)
+        build_location_descriptions(type_strings[i_type], notes[i_type], merge = TRUE, type_sep = type_sep, note_sep = note_sep, frequency = frequency, frequency_in = frequency_in)
       } else {
         note_groups <- unique(notes[i_type])
         temp <- lapply(note_groups, function(note) {
           i_note <- sapply(notes[i_type], function(n) identical(n, unlist(note)))
-          build_location_description(type_strings[i_type][i_note], notes[i_type][i_note], type_sep = type_sep, note_sep = note_sep, frequency = frequency, frequency_in = frequency_in)
+          build_location_descriptions(type_strings[i_type][i_note], notes[i_type][i_note], merge = TRUE, type_sep = type_sep, note_sep = note_sep, frequency = frequency, frequency_in = frequency_in)
         })
         paste(temp, collapse = group_sep)
       }
     })
-    description <- paste(descriptions, collapse = group_sep)
+    descriptions <- paste(description, collapse = group_sep)
   }
-  return(description)
+  return(descriptions)
 }
 
 # Categories --------------

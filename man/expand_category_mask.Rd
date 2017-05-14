@@ -20,7 +20,7 @@ expand_category_mask(0)
 expand_category_mask(3)
 }
 \seealso{
-Other Falling Fruit functions: \code{\link{build_location_description}},
+Other Falling Fruit functions: \code{\link{build_location_descriptions}},
   \code{\link{build_type_strings}},
   \code{\link{get_ff_types}},
   \code{\link{match_type_strings}},
