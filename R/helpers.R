@@ -131,6 +131,36 @@ melt_by_listcol <- function(dt, column) {
   return(dt[rep(1:nrow(dt), n)][, c(column) := unlist(values)][])
 }
 
+#' Apply a Function over a List of Atomic Vectors
+#'
+#' Provides a fast, vectorized alternative to \code{\link{lappl}} for a list of atomic vectors operated on by a function whose result is the same length as its input.
+#'
+#' @param X List of atomic vectors.
+#' @param FUN Function to be applied to each element of \code{X}.
+#' ... Arguments passed to \code{FUN}.
+#' @return Object of the same length as \code{X}.
+#' @family helper functions
+#' @export
+#' @examples
+#' x <- list(c("a", "b"), c(), c("d"))
+#' lvapply(x, gsub, pattern = "d", replacement = "e")
+lvapply <- function(X, FUN, ...) {
+  if (!is.list(X)) {
+    stop("X must be a list.")
+  }
+  FUN <- match.fun(FUN)
+  V <- unlist(X, recursive = FALSE, use.names = FALSE)
+  v <- FUN(V, ...)
+  n <- sapply(X, length)
+  is_empty <- n == 0
+  n[n == 0] <- 1
+  f <- as.factor(rep(1:length(n), n))
+  f <- subset(f, f %in% which(!is_empty))
+  x <- split(v, f)
+  names(x) <- names(X)
+  return(x)
+}
+
 # String Formatting --------------
 
 #' Quote Regex Metacharacters
