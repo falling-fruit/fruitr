@@ -306,10 +306,13 @@ merge_overlapping_locations <- function(dt, ...) {
   }
 
   # Merge locations by position fields
-  merged <- dt[, .(
+  is_overlapping <- duplicated(dt, by = position_fields) | duplicated(dt, by = position_fields, fromLast = TRUE)
+  dt_single <- dt[!is_overlapping][, description := build_location_descriptions(description, notes)]
+  data.table::setnames(dt_single, "id", "ids")
+  dt_multi <- dt[is_overlapping, .(
     ids = paste(na.omit(unique(id)), collapse = ", "),
     types = paste(na.omit(unique(types)), collapse = ", "),
-    description = build_location_description(description, notes, ...),
+    description = build_location_description(description, notes),
     # FIXME: May not work for seasons spanning two calendar years.
     season.start = if (all(is.na(season.start))) NA_integer_ else as.integer(min(season.start, na.rm = TRUE)),
     season.stop = if (all(is.na(season.stop))) NA_integer_ else as.integer(max(season.stop, na.rm = TRUE)),
@@ -321,9 +324,9 @@ merge_overlapping_locations <- function(dt, ...) {
     author = paste(na.omit(unique(author)), collapse = ", "),
     photo.url = photo.url[1]
   ), by = position_fields]
-
   # Return merged locations
-  return(merged)
+  field_subset <- intersect(intersect(fields, names(dt_single)), names(dt_multi))
+  return(rbind(dt_single[, field_subset, with = FALSE], dt_multi[, field_subset, with = FALSE]))
 }
 
 #' Write Locations to File for Import
