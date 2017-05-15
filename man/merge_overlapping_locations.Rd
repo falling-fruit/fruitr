@@ -9,7 +9,7 @@ merge_overlapping_locations(dt, ...)
 \arguments{
 \item{dt}{Locations data.}
 
-\item{...}{Arguments passed to \code{\link{build_location_descriptions}}.}
+\item{...}{Arguments passed to \code{\link{build_location_description}}.}
 }
 \description{
 Falling Fruit does not support overlapping locations. This function merges locations with the same \code{lat}, \code{lng} or \code{address} by the methods described in Details.
@@ -19,7 +19,7 @@ The following aggregation is applied to all non-missing values for each field:
 
 \itemize{
   \item \code{ids, types, author} - Comma-delimited list of all unique values.
-  \item \code{description} - Result of \code{\link{build_location_descriptions}(types = description, notes = notes)}.
+  \item \code{description} - Result of \code{\link{build_location_description}(types = description, notes = notes)}.
   \item \code{season.start} - Minimum value.
   \item \code{season.stop} - Maximum value.
   \item \code{unverified} - True ('x') if any are true.

@@ -145,7 +145,7 @@ dt[, author := NA_character_]
 
 #### `description`
 
-Information displayed in the location infobox. `<br>` (HTML line breaks) are converted to `\n` (newline) characters. No other markup is currently supported. For imported data, this should be used to contain the fields used for matching to Falling Fruit types (e.g. formatted with `fruitr::build_type_strings()`) as `description` is later passed as the `types` argument in `fruitr::build_location_descriptions()`. Additional information is added to `notes` (see below).
+Information displayed in the location infobox. `<br>` (HTML line breaks) are converted to `\n` (newline) characters. No other markup is currently supported. For imported data, this should be used to contain the fields used for matching to Falling Fruit types (e.g. formatted with `fruitr::build_type_strings()`) as `description` is later passed as the `types` argument in `fruitr::build_location_description()`. Additional information is added to `notes` (see below).
 
 ```R
 common_names <- fruitr::clean_strings(dt[["COMMON_NAME"]]) # or NULL
@@ -155,7 +155,7 @@ dt[, description := fruitr::build_type_strings(ids = NULL, common_names, scienti
 
 #### `notes`
 
-Vector of additional strings later appended to the description by `fruitr::build_location_descriptions()`.
+Vector of additional strings later appended to the description by `fruitr::build_location_description()`.
 
 ```R
 dt[, notes := Map(list, NA_character_)]
@@ -223,7 +223,7 @@ Since Falling Fruit does not support overlapping locations, these need to be mer
 mdt <- fruitr::merge_overlapping_locations(dt)
 ```
 
-Additional arguments are passed to `fruitr::build_location_descriptions()`, the function responsible for constructing the final description by appending notes from single or overlapping locations. In particular, `merge` (default: `FALSE`) determines whether only the `notes` unique for all locations are preserved.
+Additional arguments are passed to `fruitr::build_location_description()`, the function responsible for constructing the final description by appending notes from single or overlapping locations. In particular, `merge` (default: `FALSE`) determines whether only the `notes` unique for all locations are preserved.
 
 ### Write file for import
 

@@ -266,7 +266,7 @@ apply_match_table <- function(dt, match_table, drop = FALSE, types = get_ff_type
 #'
 #' \itemize{
 #'   \item \code{ids, types, author} - Comma-delimited list of all unique values.
-#'   \item \code{description} - Result of \code{\link{build_location_descriptions}(types = description, notes = notes)}.
+#'   \item \code{description} - Result of \code{\link{build_location_description}(types = description, notes = notes)}.
 #'   \item \code{season.start} - Minimum value.
 #'   \item \code{season.stop} - Maximum value.
 #'   \item \code{unverified} - True ('x') if any are true.
@@ -275,7 +275,7 @@ apply_match_table <- function(dt, match_table, drop = FALSE, types = get_ff_type
 #' }
 #'
 #' @param dt Locations data.
-#' @param ... Arguments passed to \code{\link{build_location_descriptions}}.
+#' @param ... Arguments passed to \code{\link{build_location_description}}.
 #' @export
 #' @family location import functions
 merge_overlapping_locations <- function(dt, ...) {
@@ -309,7 +309,7 @@ merge_overlapping_locations <- function(dt, ...) {
   merged <- dt[, .(
     ids = paste(na.omit(unique(id)), collapse = ", "),
     types = paste(na.omit(unique(types)), collapse = ", "),
-    description = build_location_descriptions(description, notes, ...),
+    description = build_location_description(description, notes, ...),
     # FIXME: May not work for seasons spanning two calendar years.
     season.start = if (all(is.na(season.start))) NA_integer_ else as.integer(min(season.start, na.rm = TRUE)),
     season.stop = if (all(is.na(season.stop))) NA_integer_ else as.integer(max(season.stop, na.rm = TRUE)),
