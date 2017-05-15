@@ -336,26 +336,21 @@ merge_overlapping_locations <- function(dt, ...) {
 #' @export
 #' @family location import functions
 write_locations_for_import <- function(dt, file) {
-
-  dt <- data.table::copy(dt)
-
   # Keep only recognized fields
   fields <- gsub(" ", ".", tolower(Location_import_fields))
   if (any(duplicated(intersect(names(dt), fields)))) {
     stop("Duplicate import field names found.")
   }
   dt <- dt[, intersect(fields, names(dt)), with = FALSE]
-
   # Add missing fields
   missing_fields <- setdiff(fields, names(dt))
   if (length(missing_fields) > 0) {
     dt[, (missing_fields) := NA]
-    data.table::setcolorder(dt, fields)
   }
-
+  # Order fields
+  data.table::setcolorder(dt, fields)
   # Rename fields
   data.table::setnames(dt, Location_import_fields[match(names(dt), fields)])
-
   # Write result to file
   write.csv(dt, file, na = "", row.names = FALSE)
 }
