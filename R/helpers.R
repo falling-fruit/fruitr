@@ -334,6 +334,35 @@ format_scientific_names <- function(x, connecting_terms = TRUE, cultivars = TRUE
   return(x)
 }
 
+#' Parse Scientific Names
+#'
+#' Extracts components of scientific names.
+#'
+#' @param x Character vector.
+#' @param parts Parts of the scientific names to extract.
+#' @return List of character vectors (for "taxon") and lists of the same length as \code{x}.
+#' @family helper functions
+#' @export
+#' @examples
+#' parse_scientific_names(c("Malus pumila", "Prunus persica"), parts = "taxon")
+#' parse_scientific_names("Prunus persica var. nucipersica 'Crimson King'")
+parse_scientific_names <- function(x, parts = c("taxon", "subtaxons", "connectors", "cultivars")) {
+  results <- list()
+  if ("taxon" %in% parts) {
+    results$taxon <- unlist(stringr::str_extract_all(x, "^([a-zA-Z]+){1}"))
+  }
+  if ("subtaxons" %in% parts) {
+    results$subtaxons <- lapply(stringr::str_match_all(x, "(?: ([a-zA-Z\\-]{2,})(?: |$))"), "[", i = , j = 2)
+  }
+  if ("connectors" %in% parts) {
+    results$connectors <- lapply(stringr::str_match_all(x, "(?: (x|[a-z]+\\.{1}) )"), "[", i = , j = 2)
+  }
+  if ("cultivars" %in% parts) {
+    results$cultivars <- lapply(stringr::str_match_all(x, " '([^']+)'"), "[", i = , j = 2)
+  }
+  return(results)
+}
+
 # Translations --------------
 
 #' Normalize Language
