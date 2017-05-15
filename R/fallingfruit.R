@@ -33,8 +33,9 @@ get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "graft
     dt[, common_names := lapply(strsplit(name, "\\s*,\\s*"), na.remove)]
   }
   # Format names for matching
-  dt[, matched_scientific_names := lvapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = FALSE)]
-  dt[, matched_cultivars := lvapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = TRUE)]
+  is_cultivar <- sapply(lvapply(dt$scientific_names, grepl, pattern = "'[^']+'"), any)
+  dt[!is_cultivar, matched_scientific_names := lvapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = FALSE)]
+  dt[is_cultivar, matched_cultivars := lvapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = TRUE)]
   # Return types as as data.table
   return(dt)
 }
