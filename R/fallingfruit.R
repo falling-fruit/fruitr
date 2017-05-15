@@ -209,12 +209,12 @@ build_location_descriptions <- function(type_strings, notes = NULL, merge = FALS
     types <- unique(unlist(type_strings))
     description <- lapply(types, function(type) {
       i_type <- type_strings == type
-      if (length(i_type) == 1) {
+      if (sum(i_type) == 1) {
         build_location_descriptions(type_strings[i_type], notes[i_type], merge = TRUE, type_sep = type_sep, note_sep = note_sep, frequency = frequency, frequency_in = frequency_in)
       } else {
         note_groups <- unique(notes[i_type])
         temp <- lapply(note_groups, function(note) {
-          i_note <- sapply(notes[i_type], function(n) identical(n, unlist(note)))
+          i_note <- sapply(notes[i_type], function(n) identical(n, note))
           build_location_descriptions(type_strings[i_type][i_note], notes[i_type][i_note], merge = TRUE, type_sep = type_sep, note_sep = note_sep, frequency = frequency, frequency_in = frequency_in)
         })
         paste(temp, collapse = group_sep)
