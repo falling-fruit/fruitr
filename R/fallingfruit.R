@@ -225,6 +225,40 @@ build_location_description <- function(type_strings, notes = NULL, merge = FALSE
   return(description)
 }
 
+#' Build Location Descriptions
+#'
+#' A faster, vectorized alternative of \code{\link{build_location_description}} for single-type locations.
+#'
+#' @param type_strings Character vector of type strings.
+#' @param notes List of character vectors, each of the same length.
+#' @param note_sep Character string to seperate each element in \code{notes}.
+#' @param frequency Whether to display frequency before \code{type_strings}.
+#' @param frequency_in String of two characters in which to display the frequencies.
+#' @return Character string of the summarized and concatenated values.
+#' @export
+#' @family Falling Fruit functions
+#' @examples
+#' type_strings <- c("Apple", "Pear", "Pear")
+#' notes <- list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 20 m"))
+#' build_location_descriptions(type_strings, notes)
+#' notes <- list(c("Planted 1999", NA), c(NA, "Height 20 m"), c(NA, NA))
+#' build_location_descriptions(type_strings, notes)
+#' build_location_descriptions(type_strings, notes, frequency = FALSE)
+build_location_descriptions <- function(type_strings, notes = NULL, note_sep = ". ", frequency = TRUE, frequency_in = "[]") {
+  descriptions <- type_strings
+  if (frequency) {
+    descriptions <- paste0(substr(frequency_in, 1, 1), 1, "x", substr(frequency_in, 2, 2), " ", descriptions)
+  }
+  if (!is.null(notes)) {
+    note_strings <- sapply(notes, function(note) {
+      paste(na.omit(note), collapse = note_sep)
+    })
+    has_note <- note_strings != ""
+    descriptions[has_note] <- paste0(paste(descriptions[has_note], note_strings[has_note], sep = ". "), gsub("\\s*$", "", note_sep))
+  }
+  return(descriptions)
+}
+
 # Categories --------------
 
 #' Expand Category Mask to Categories
