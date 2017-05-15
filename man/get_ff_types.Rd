@@ -28,7 +28,7 @@ Get Falling Fruit (FF) Types
 ff_types <- get_ff_types()
 }
 \seealso{
-Other Falling Fruit functions: \code{\link{build_location_descriptions}},
+Other Falling Fruit functions: \code{\link{build_location_description}},
   \code{\link{build_type_strings}},
   \code{\link{expand_category_mask}},
   \code{\link{match_type_strings}},

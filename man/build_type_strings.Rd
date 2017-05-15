@@ -32,7 +32,7 @@ build_type_strings(c(1, 2), c("Apple", "Pear"), c("Malus domestica", "Pyrus comm
 build_type_strings(1, "Apple", "Malus pumila", "fr: Pommier commun")
 }
 \seealso{
-Other Falling Fruit functions: \code{\link{build_location_descriptions}},
+Other Falling Fruit functions: \code{\link{build_location_description}},
   \code{\link{expand_category_mask}},
   \code{\link{get_ff_types}},
   \code{\link{match_type_strings}},
