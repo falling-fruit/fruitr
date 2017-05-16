@@ -158,7 +158,7 @@ dt[, description := fruitr::build_type_strings(ids = NULL, common_names, scienti
 Vector of additional strings later appended to the description by `fruitr::build_location_description()`.
 
 ```R
-dt[, notes := Map(list, NA_character_)]
+dt[, notes := Map(c, NA_character_)]
 ```
 
 #### `access`

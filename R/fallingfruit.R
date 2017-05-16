@@ -249,7 +249,10 @@ build_location_descriptions <- function(type_strings, notes = NULL, note_sep = "
   if (frequency) {
     descriptions <- paste0(substr(frequency_in, 1, 1), 1, "x", substr(frequency_in, 2, 2), " ", descriptions)
   }
-  if (!is.null(notes)) {
+  if (!is.null(notes) && length(notes) > 1) {
+    if (is.list(notes[[1]])) {
+      notes <- unlist(notes, recursive = FALSE)
+    }
     note_strings <- sapply(notes, function(note) {
       paste(na.omit(note), collapse = note_sep)
     })
