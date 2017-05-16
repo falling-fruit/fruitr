@@ -307,12 +307,12 @@ merge_overlapping_locations <- function(dt, ...) {
 
   # Merge locations by position fields
   is_overlapping <- duplicated(dt, by = position_fields) | duplicated(dt, by = position_fields, fromLast = TRUE)
-  dt_single <- dt[!is_overlapping][, description := build_location_descriptions(description, notes)]
+  dt_single <- dt[!is_overlapping][, description := build_location_descriptions(description, notes, ...)]
   data.table::setnames(dt_single, "id", "ids")
   dt_multi <- dt[is_overlapping, .(
     ids = paste(na.omit(unique(id)), collapse = ", "),
     types = paste(na.omit(unique(types)), collapse = ", "),
-    description = build_location_description(description, notes),
+    description = build_location_description(description, notes, ...),
     # FIXME: May not work for seasons spanning two calendar years.
     season.start = if (all(is.na(season.start))) NA_integer_ else as.integer(min(season.start, na.rm = TRUE)),
     season.stop = if (all(is.na(season.stop))) NA_integer_ else as.integer(max(season.stop, na.rm = TRUE)),
