@@ -7,7 +7,7 @@
 gridcells_to_geohashes(xyz)
 }
 \arguments{
-\item{grid_cells}{Rows of Web Mercator grid cell indices (x, y, zoom).}
+\item{xyz}{Rows of Web Mercator grid cell indices (x, y, zoom).}
 }
 \value{
 A character vector of geohashes.

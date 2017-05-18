@@ -21,7 +21,8 @@ parse_type_strings("Apple [Malus pumila]")
 parse_type_strings("14: Apple [Malus pumila]")
 }
 \seealso{
-Other Falling Fruit functions: \code{\link{build_location_description}},
+Other Falling Fruit functions: \code{\link{build_location_descriptions}},
+  \code{\link{build_location_description}},
   \code{\link{build_type_strings}},
   \code{\link{expand_category_mask}},
   \code{\link{get_ff_types}},
