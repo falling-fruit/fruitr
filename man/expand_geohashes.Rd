@@ -6,8 +6,14 @@
 \usage{
 expand_geohashes(geohashes)
 }
+\arguments{
+\item{geohashes}{A character vector of geohashes.}
+}
+\value{
+Character vector of each geohash in \code{geohashes} followed by its parents.
+}
 \description{
-Expand Geohashes
+Returns geohashes followed by all their parent geohashes.
 }
 \examples{
 expand_geohashes("0011")
