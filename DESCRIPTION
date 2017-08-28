@@ -23,7 +23,14 @@ Imports:
     stringdist,
     stringr,
     xml2,
-    RCurl
+    RCurl,
+    jsonlite,
+    sp,
+    methods,
+    stats,
+    utils,
+    tools,
+    XML
 Remotes:
     github::rstats-db/RPostgres
 RoxygenNote: 6.0.1

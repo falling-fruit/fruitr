@@ -9,14 +9,15 @@ lvapply(X, FUN, ...)
 \arguments{
 \item{X}{List of atomic vectors.}
 
-\item{FUN}{Function to be applied to each element of \code{X}.
-... Arguments passed to \code{FUN}.}
+\item{FUN}{Function to be applied to each element of \code{X}.}
+
+\item{...}{Arguments passed to \code{FUN}.}
 }
 \value{
 Object of the same length as \code{X}.
 }
 \description{
-Provides a fast, vectorized alternative to \code{\link{lappl}} for a list of atomic vectors operated on by a function whose result is the same length as its input.
+Provides a fast, vectorized alternative to \code{\link{lapply}} for a list of atomic vectors operated on by a function whose result is the same length as its input.
 }
 \examples{
 x <- list(c("a", "b"), c(), c("d"))

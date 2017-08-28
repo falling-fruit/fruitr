@@ -14,7 +14,7 @@
 #' ff_types <- get_ff_types()
 get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "grafter"), uncategorized = TRUE, pending = TRUE, urls = TRUE, locale = "en") {
   # Retrieve data from API
-  url <- httr::parse_url("https://fallingfruit.org/api/0.2/types.json")
+  url <- "https://fallingfruit.org/api/0.2/types.json"
   query <- list(api_key = "***REMOVED***", c = paste(intersect(Categories, categories), collapse = ","), uncategorized = ifelse(uncategorized, 1, 0), pending = ifelse(pending, 1, 0), locale = locale, urls = ifelse(urls, 1, 0))
   response <- httr::GET(url, query = query)
   # Convert JSON to data.table
@@ -125,7 +125,9 @@ match_type_strings <- function(type_strings, types = get_ff_types(pending = FALS
 #' @family Falling Fruit functions
 #' @examples
 #' ff_types <- get_ff_types()
+#' \dontrun{
 #' normalize_type_strings("Apple", ff_types)
+#' }
 #' normalize_type_strings(c("14", "Apple [Malus]"), ff_types)
 #' normalize_type_strings(c("", " ,", NA), ff_types)
 #' normalize_type_strings(c("14: Apple, 14: Apple"), ff_types)
@@ -189,7 +191,11 @@ normalize_type_strings <- function(type_strings, types = get_ff_types(pending = 
 #' @family Falling Fruit functions
 #' @examples
 #' type_strings <- c("Apple", "Pear", "Pear")
-#' notes <- list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 20 m"))
+#' notes <- list(
+#'   c("Planted 1999", "Height 10 m"),
+#'   c("Planted 1999", "Height 20 m"),
+#'   c("Planted 1999", "Height 20 m")
+#' )
 #' build_location_description(type_strings, notes)
 #' build_location_description(type_strings, notes, merge = TRUE)
 build_location_description <- function(type_strings, notes = NULL, merge = FALSE, type_sep = ", ", note_sep = ". ", group_sep = "<br>", frequency = TRUE, frequency_in = "[]") {
@@ -239,7 +245,11 @@ build_location_description <- function(type_strings, notes = NULL, merge = FALSE
 #' @family Falling Fruit functions
 #' @examples
 #' type_strings <- c("Apple", "Pear", "Pear")
-#' notes <- list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 20 m"))
+#' notes <- list(
+#'   c("Planted 1999", "Height 10 m"),
+#'   c("Planted 1999", "Height 20 m"),
+#'   c("Planted 1999", "Height 20 m")
+#' )
 #' build_location_descriptions(type_strings, notes)
 #' notes <- list(c("Planted 1999", NA), c(NA, "Height 20 m"), c(NA, NA))
 #' build_location_descriptions(type_strings, notes)
@@ -254,7 +264,7 @@ build_location_descriptions <- function(type_strings, notes = NULL, note_sep = "
       notes <- unlist(notes, recursive = FALSE)
     }
     note_strings <- sapply(notes, function(note) {
-      paste(na.omit(note), collapse = note_sep)
+      paste(stats::na.omit(note), collapse = note_sep)
     })
     has_note <- note_strings != ""
     descriptions[has_note] <- paste0(paste(descriptions[has_note], note_strings[has_note], sep = ". "), gsub("\\s*$", "", note_sep))

@@ -7,15 +7,16 @@
 get_inaturalist_search(q, is_active = "true")
 }
 \arguments{
-\item{is_active}{Either 'true', 'false', or 'any'.}
+\item{q}{(character) Search string.}
+
+\item{is_active}{Either "true", "false", or "any".}
 }
 \description{
 Undocumented, but equivalent to the HTML equivalent \url{http://www.inaturalist.org/taxa/search}.
 }
 \examples{
-str(content(get_inaturalist_search("Malus domestica")))
-str(content(get_inaturalist_search("Abelmoschus")))
-str(content(get_inaturalist_search("Citrus x sinensis")))
+s <- get_inaturalist_search("Malus domestica")
+str(httr::content(s))
 }
 \seealso{
 Other iNaturalist functions: \code{\link{get_inaturalist_page}},

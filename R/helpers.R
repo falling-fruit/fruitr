@@ -48,10 +48,10 @@ replace_values_in_list <- function(x, old, new) {
 #' @export
 #' @family helper functions
 #' @examples
-#' str(na.omit(c(1, NA)))
+#' str(stats::na.omit(c(1, NA)))
 #' str(na.remove(c(1, NA)))
 na.remove <- function(x) {
-  y <- na.omit(x)
+  y <- stats::na.omit(x)
   attributes(y) <- NULL
   return(y)
 }
@@ -108,7 +108,7 @@ unique_na <- function(x, na.rm = FALSE) {
   if (length(ux) == 1) {
     return(ux)
   } else {
-    return(as(NA, class(x)))
+    return(methods::as(NA, class(x)))
   }
 }
 
@@ -133,11 +133,11 @@ melt_by_listcol <- function(dt, column) {
 
 #' Apply a Function over a List of Atomic Vectors
 #'
-#' Provides a fast, vectorized alternative to \code{\link{lappl}} for a list of atomic vectors operated on by a function whose result is the same length as its input.
+#' Provides a fast, vectorized alternative to \code{\link{lapply}} for a list of atomic vectors operated on by a function whose result is the same length as its input.
 #'
 #' @param X List of atomic vectors.
 #' @param FUN Function to be applied to each element of \code{X}.
-#' ... Arguments passed to \code{FUN}.
+#' @param ... Arguments passed to \code{FUN}.
 #' @return Object of the same length as \code{X}.
 #' @family helper functions
 #' @export
@@ -291,18 +291,18 @@ format_addresses <- function(x) {
 #' format_scientific_names("Malus Batt.")
 #' format_scientific_names("Tamarix rubella Batt.")
 #' format_scientific_names("Tamarix lucronensis Sennen & Elias")
-#' format_scientific_names("Malus ×domestica var. gala", connecting_terms = TRUE)
-#' format_scientific_names("Malus ×domestica var. gala", connecting_terms = FALSE)
+#' format_scientific_names("Malus x domestica var. gala", connecting_terms = TRUE)
+#' format_scientific_names("Malus x domestica var. gala", connecting_terms = FALSE)
 #' format_scientific_names("Malus pumila 'gala'", cultivars = TRUE)
 #' format_scientific_names("Malus pumila 'gala'", cultivars = FALSE)
 #' format_scientific_names("Prunus subg amygdalus")
-#' format_scientific_names("Malus ×", connecting_terms = FALSE)
+#' format_scientific_names("Malus x", connecting_terms = FALSE)
 format_scientific_names <- function(x, connecting_terms = TRUE, cultivars = TRUE) {
   start_x <- x
   x <- clean_strings(x)
   # Connecting terms
-  x <- gsub("\\s*×\\s*", " x ", x, perl = TRUE) # space × from other terms
-  x <- gsub("\\s+[X×](\\s+|$)", " x\\1", x, perl = TRUE) # standardize hybrid (Genus x species)
+  x <- gsub("\\s*\u00d7\\s*", " x ", x, perl = TRUE) # space \u00D7 from other terms
+  x <- gsub("\\s+[X\u00d7](\\s+|$)", " x\\1", x, perl = TRUE) # standardize hybrid (Genus \u00d7 species)
   x <- gsub("\\s+(subgenus|subg)(\\.*)(\\s+|$)", " subg.\\3", x, ignore.case = TRUE) # subgenus -> subg.
   x <- gsub("\\s+(species|spp|sp)(\\.*)(\\s+|$)", " sp.\\3", x, ignore.case = TRUE) # species -> sp.
   x <- gsub("\\s+(subspecies|ssp|sspp|subspp|subsp)(\\.*)(\\s+|$)", " subsp.\\3", x, ignore.case = TRUE) # subspecies -> subsp.
@@ -377,7 +377,6 @@ parse_scientific_names <- function(x, parts = c("taxon", "subtaxons", "connector
 #' @examples
 #' normalize_language("spa")
 #' normalize_language("Spanish")
-#' normalize_language("Español")
 #' normalize_language("Espagnol")
 normalize_language = function(x, types = c("locale", "variant", "ISO639.1", "ISO639.2T", "ISO639.2B", "ISO639.3", "ISO639.6", "wikipedia", "other", "autonym", "en", "fr", "de", "ru", "es", "it", "zh")) {
   # Prepare input
@@ -485,7 +484,7 @@ subset_search_results <- function(strings, values, ignore.case = TRUE) {
 #' to <- 4326
 #' sptransform(sptransform(c(500, 1000), from, to), to, from)
 sptransform <- function(xy, from = tryCatch(sp::proj4string(xy)), to = 4326) {
-  if (!is(from, "CRS")) {
+  if (!methods::is(from, "CRS")) {
     if (is.numeric(from)) {
       from <- sp::CRS(paste0("+init=epsg:", from))
     } else {
@@ -505,7 +504,7 @@ sptransform <- function(xy, from = tryCatch(sp::proj4string(xy)), to = 4326) {
   sp::coordinates(xy) <- names(xy)[1:2]
   sp::proj4string(xy) <- from
   txy <- sp::spTransform(xy, to)
-  return(as(txy@coords, xy_class))
+  return(methods::as(txy@coords, xy_class))
 }
 
 #' Transform CH1903 to WGS84 Coordinates

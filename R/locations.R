@@ -3,8 +3,10 @@
 #' @param file The path of the file to be read.
 #' @param xy Names of the x and y coordinate fields (renamed to "lng", "lat" respectively).
 #' @param id Name of the id field (renamed to "id").
-#' @param CRSobj Coordinate reference system (\code{\link{sp::CRS}}).
-#' @param ... Additional parameters passed to \code{\link{data.table::fread}} (delimited files), \code{\link{rgdal::readOGR}} (spatial data), or \code{\link{xml2::read_xml}} (certain kml files).
+#' @param CRSobj Coordinate reference system (\code{\link[sp]{CRS}}).
+#' @param stringsAsFactors (boolean) Whether to convert strings to factors.
+#' @param na.strings (character vector) Strings to read as \code{NA}.
+#' @param ... Additional parameters passed to \code{\link[data.table]{fread}} (delimited files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).
 #' @export
 #' @family location import functions
 read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), stringsAsFactors = FALSE, na.strings = c("", "NA", "N/A", "na", "n/a"), ...) {
@@ -70,9 +72,9 @@ read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::C
 #' @param ids Unique identifier for each row in \code{names}. If \code{NULL}, row indices are used.
 #' @param simplify Method used to merge matches for each row in \code{names}. Default is \code{first}. If \code{NULL} or \code{FALSE}, all results are returned.
 #' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
-#' @param max_distance Maximum distance for fuzzy matching, as calculated by \code{\link{stringdist::stringdistmatrix}}.
+#' @param max_distance Maximum distance for fuzzy matching, as calculated by \code{\link[stringdist]{stringdistmatrix}}.
 #' @param n_nearest Maximum number of nearest fuzzy matches to return.
-#' @param ... Additional arguments passed to \code{\link{stringdist::stringdistmatrix}}.
+#' @param ... Additional arguments passed to \code{\link[stringdist]{stringdistmatrix}}.
 #' @export
 #' @family location import functions
 match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "last", "union", "intersection"), types = get_ff_types(pending = FALSE), max_distance = 3, n_nearest = Inf, ...) {
@@ -125,8 +127,8 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
       n_fuzzy <- min(n_nearest, length(fuzzy_types))
       list(
         exact = list(exact_types),
-        fuzzy = list(head(fuzzy_types, n_fuzzy)),
-        distance = list(head(fuzzy_distances, n_fuzzy))
+        fuzzy = list(utils::head(fuzzy_types, n_fuzzy)),
+        distance = list(utils::head(fuzzy_distances, n_fuzzy))
       )
     })
 
@@ -150,8 +152,8 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
         exact = ifelse(all(is.empty(exact)), list(integer()), exact[!is.empty(exact)][1]),
         fuzzy = ifelse(all(is.empty(fuzzy)), list(integer()), fuzzy[!is.empty(fuzzy)][1])), by = id],
       last = expanded[, .(
-        exact = ifelse(all(is.empty(exact)), list(integer()), tail(exact[!is.empty(exact)], 1)),
-        fuzzy = ifelse(all(is.empty(fuzzy)), list(integer()), tail(fuzzy[!is.empty(fuzzy)], 1))), by = id],
+        exact = ifelse(all(is.empty(exact)), list(integer()), utils::tail(exact[!is.empty(exact)], 1)),
+        fuzzy = ifelse(all(is.empty(fuzzy)), list(integer()), utils::tail(fuzzy[!is.empty(fuzzy)], 1))), by = id],
       union = expanded[, .(exact = list(Reduce(union, exact)), fuzzy = list(Reduce(union, fuzzy))), by = id],
       intersection = expanded[, .(exact = list(Reduce(intersect, exact)), fuzzy = list(Reduce(intersect, fuzzy))), by = id],
       stop(paste("Unsupported simplify:", simplify[1]))
@@ -229,7 +231,7 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
 #' @param dt Locations data.
 #' @param match_table Type assignments, as returned by \code{\link{get_ff_types}}.
 #' @param drop Whether to drop unassigned rows in \code{dt}.
-#' @param Falling Fruit types, as returned by \code{\link{get_ff_types}}.
+#' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
 #' @export
 #' @family location import functions
 apply_match_table <- function(dt, match_table, drop = FALSE, types = get_ff_types(pending = FALSE)) {
@@ -310,8 +312,8 @@ merge_overlapping_locations <- function(dt, ...) {
   dt_single <- dt[!is_overlapping][, description := build_location_descriptions(description, notes, ...)]
   data.table::setnames(dt_single, "id", "ids")
   dt_multi <- dt[is_overlapping, .(
-    ids = paste(na.omit(unique(id)), collapse = ", "),
-    types = paste(na.omit(unique(types)), collapse = ", "),
+    ids = paste(stats::na.omit(unique(id)), collapse = ", "),
+    types = paste(stats::na.omit(unique(types)), collapse = ", "),
     description = build_location_description(description, notes, ...),
     # FIXME: May not work for seasons spanning two calendar years.
     season.start = if (all(is.na(season.start))) NA_integer_ else as.integer(min(season.start, na.rm = TRUE)),
@@ -321,7 +323,7 @@ merge_overlapping_locations <- function(dt, ...) {
     unverified = if (any(grepl("^x$|^t$|^true$", unverified, ignore.case = TRUE))) "x" else NA_character_,
     yield.rating = if (all(is.na(yield.rating))) NA_integer_ else as.integer(round(mean(yield.rating, na.rm = TRUE))),
     quality.rating = if (all(is.na(quality.rating))) NA_integer_ else as.integer(round(mean(quality.rating, na.rm = TRUE))),
-    author = paste(na.omit(unique(author)), collapse = ", "),
+    author = paste(stats::na.omit(unique(author)), collapse = ", "),
     photo.url = photo.url[1]
   ), by = position_fields]
   # Return merged locations
@@ -352,5 +354,5 @@ write_locations_for_import <- function(dt, file) {
   # Rename fields
   data.table::setnames(dt, Location_import_fields[match(names(dt), fields)])
   # Write result to file
-  write.csv(dt, file, na = "", row.names = FALSE)
+  utils::write.csv(dt, file, na = "", row.names = FALSE)
 }

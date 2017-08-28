@@ -6,13 +6,21 @@
 \usage{
 get_col_page(id, format = "json", response = "full")
 }
+\arguments{
+\item{id}{(character) COL record ID.}
+
+\item{format}{(character) Result format: "json", "xml", or "php".}
+
+\item{response}{(character) Result type: "terse" (up to 500 results) or "full" (up to 50 results).}
+}
 \description{
 See documentation at \url{http://webservice.catalogueoflife.org/col/webservice}.
 }
 \examples{
 s <- get_col_search("Malus domestica")
 id <- parse_col_search(s, "ids")$ids[1]
-str(content(get_col_page(id)))
+pg <- get_col_page(id)
+str(httr::content(pg))
 }
 \seealso{
 Other COL functions: \code{\link{build_col_scientific_name}},

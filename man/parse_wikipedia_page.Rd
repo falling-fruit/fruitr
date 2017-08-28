@@ -6,14 +6,17 @@
 \usage{
 parse_wikipedia_page(page, types = c("common_names", "langlinks"))
 }
+\arguments{
+\item{page}{(response) Result of \code{\link{get_wiki_page}}.}
+
+\item{types}{(character) Data types to parse.}
+}
 \description{
 Parse Wikipedia Page
 }
 \examples{
 pg <- get_wiki_page("https://en.wikipedia.org/wiki/Malus_domestica")
 str(parse_wikipedia_page(pg))
-pg <- get_wiki_page("https://en.wikipedia.org/wiki/Abelmoschus")
-str(parse_wikipedia_page(pg)) # no names
 }
 \seealso{
 Other Wiki functions: \code{\link{build_wiki_url}},

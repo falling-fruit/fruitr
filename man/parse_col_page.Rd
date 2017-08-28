@@ -6,6 +6,11 @@
 \usage{
 parse_col_page(page, types = c("scientific_names", "common_names"))
 }
+\arguments{
+\item{page}{(response) Result of \code{\link{get_col_page}}.}
+
+\item{types}{(character) Data types to parse.}
+}
 \description{
 Parse Catalogue of Life (COL) Page
 }

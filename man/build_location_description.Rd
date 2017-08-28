@@ -33,7 +33,11 @@ Builds a description from its inputs. When \code{merge} is \code{TRUE}, all cont
 }
 \examples{
 type_strings <- c("Apple", "Pear", "Pear")
-notes <- list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 20 m"))
+notes <- list(
+  c("Planted 1999", "Height 10 m"),
+  c("Planted 1999", "Height 20 m"),
+  c("Planted 1999", "Height 20 m")
+)
 build_location_description(type_strings, notes)
 build_location_description(type_strings, notes, merge = TRUE)
 }

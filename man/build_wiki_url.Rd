@@ -6,6 +6,15 @@
 \usage{
 build_wiki_url(wiki, type, page, url = NULL)
 }
+\arguments{
+\item{wiki}{(character) Wiki name.}
+
+\item{type}{(character) Wiki type.}
+
+\item{page}{(character) Wiki page title.}
+
+\item{url}{(named list) Alternatively, \code{wiki}, \code{type}, and \code{page} as a list.}
+}
 \description{
 Build Wiki URL
 }

@@ -15,9 +15,13 @@ read_locations(file, xy = c("lng", "lat"), id = "id",
 
 \item{id}{Name of the id field (renamed to "id").}
 
-\item{CRSobj}{Coordinate reference system (\code{\link{sp::CRS}}).}
+\item{CRSobj}{Coordinate reference system (\code{\link[sp]{CRS}}).}
 
-\item{...}{Additional parameters passed to \code{\link{data.table::fread}} (delimited files), \code{\link{rgdal::readOGR}} (spatial data), or \code{\link{xml2::read_xml}} (certain kml files).}
+\item{stringsAsFactors}{(boolean) Whether to convert strings to factors.}
+
+\item{na.strings}{(character vector) Strings to read as \code{NA}.}
+
+\item{...}{Additional parameters passed to \code{\link[data.table]{fread}} (delimited files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).}
 }
 \description{
 Load Locations Dataset

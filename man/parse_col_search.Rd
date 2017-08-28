@@ -7,6 +7,19 @@
 parse_col_search(search, types = c("results", "ids"), exact = TRUE,
   scientific_name = TRUE, accepted_name = TRUE, ignore.case = TRUE)
 }
+\arguments{
+\item{search}{(response) Result of \code{\link{parse_col_search}}.}
+
+\item{types}{(character vector) Data types to parse.}
+
+\item{exact}{(boolean) Whether to keep only results that match the search string exactly.}
+
+\item{scientific_name}{(boolean) Whether to keep only results whose scientific name matches the search string.}
+
+\item{accepted_name}{(boolean) Whether to keep only results whose accepted name matches the search string.}
+
+\item{ignore.case}{(boolean) Whether to ignore case.}
+}
 \description{
 Parse Catalogue of Life (COL) Search Results
 }
@@ -15,8 +28,6 @@ s <- get_col_search("Malus domestica")
 str(parse_col_search(s))
 str(parse_col_search(s, accepted_name = FALSE))
 str(parse_col_search(s, exact = FALSE))
-s <- get_col_search("Apple")
-str(parse_col_search(s, scientific_name = FALSE))
 }
 \seealso{
 Other COL functions: \code{\link{build_col_scientific_name}},

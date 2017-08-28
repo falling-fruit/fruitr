@@ -6,6 +6,9 @@
 \usage{
 expand_geohashes(geohashes)
 }
+\arguments{
+\item{geohashes}{(character vector) Geohashes to expand.}
+}
 \description{
 Expand Geohashes
 }

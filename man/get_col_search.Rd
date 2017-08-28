@@ -3,16 +3,27 @@
 \name{get_col_search}
 \alias{get_col_search}
 \title{Get Catalogue of Life (COL) Search Results}
+\source{
+\url{http://webservice.catalogueoflife.org/col/webservice}
+}
 \usage{
 get_col_search(name, format = "json", response = "terse", start = 0)
 }
+\arguments{
+\item{name}{(character) String to search for. Must be at least 3 characters. Only exact matches are returned, unless a wildcard (*) is appended (allowed only at the end of the string).}
+
+\item{format}{(character) Result format: "json", "xml", or "php".}
+
+\item{response}{(character) Result type: "terse" (up to 500 results) or "full" (up to 50 results).}
+
+\item{start}{(numeric) Index of the first record to return.}
+}
 \description{
-See documentation at \url{http://webservice.catalogueoflife.org/col/webservice}.
+Get Catalogue of Life (COL) Search Results
 }
 \examples{
-str(content(get_col_search("Malus domestica")))
-str(content(get_col_search("Abelmoschus")))
-str(content(get_col_search("Prunus")))
+s <- get_col_search("Malus domestica")
+str(httr::content(s))
 }
 \seealso{
 Other COL functions: \code{\link{build_col_scientific_name}},

@@ -3,21 +3,33 @@
 \name{get_eol_search}
 \alias{get_eol_search}
 \title{Get Encyclopedia of Life (EOL) Search Results}
+\source{
+\url{http://eol.org/api/docs/search}
+}
 \usage{
 get_eol_search(q, page = 1, exact = TRUE, filter_by_taxon_concept_id,
   filter_by_hierarchy_entry_id, filter_by_string, cache_ttl)
 }
-\description{
-See documentation at \url{http://eol.org/api/docs/search}. Alterations to default parameter values:
-exact: FALSE => TRUE
+\arguments{
+\item{q}{(character) Search string.}
+
+\item{page}{(integer) Index of result page to return (each of which includes up to 30 results).}
+
+\item{exact}{(boolean) Whether to only return taxons whose title, synonym or common name exactly matches \code{q}.}
+
+\item{filter_by_taxon_concept_id}{(integer) EOL Page ID. Results will be limited to members of that taxonomic group.}
+
+\item{filter_by_hierarchy_entry_id}{(integer) Hierarchy Entry ID. Results will be limited to members of that taxonomic group.}
+
+\item{filter_by_string}{(character) Results will be limited to members of the taxonomic group matching the search term.}
+
+\item{cache_ttl}{(integer) Seconds you wish to have the response cached.}
 }
-\details{
-NOTE: For reliable results, run an exact search (exact = TRUE) with a scientific name search string (q).
+\description{
+Alterations to default parameter values: exact (FALSE => TRUE). For reliable results, run an exact search (exact = TRUE) with a scientific name search string (q).
 }
 \examples{
-str(content(get_eol_search("Malus domestica"))) # few equivalent results
-str(content(get_eol_search("Abelmoschus"))) # one result
-str(content(get_eol_search("Forbidden fruit"))) # no results
+str(httr::content(get_eol_search("Malus domestica"))) # few equivalent results
 }
 \seealso{
 Other EOL functions: \code{\link{get_eol_page}},

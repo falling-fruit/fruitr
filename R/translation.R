@@ -2,6 +2,8 @@
 #'
 #' TODO: Seach by scientific synonyms if no results found.
 #'
+#' @param ff_type (named list) Row of \code{\link{get_ff_types}}.
+#' @param sources (character vector) Sources to query.
 #' @export
 #' @family translation functions
 #' @examples
@@ -106,6 +108,10 @@ query_sources_about_type <- function(ff_type, sources = c("eol", "col", "inatura
   return(responses)
 }
 
+#' Parse sources about Falling Fruit type
+#'
+#' @param responses (response list) Result of \code{\link{query_sources_about_type}}.
+#' @family translation functions
 parse_sources_about_type <- function(responses) {
   responses <- lapply(responses, function(r) {
     r$parsed <- eval(parse(text = paste0("parse_", r$source, "_page(r)")))
@@ -114,6 +120,11 @@ parse_sources_about_type <- function(responses) {
   return(responses)
 }
 
+#' Build table of scientific names
+#'
+#' @param responses (response list) Result of \code{\link{query_sources_about_type}}.
+#' @param ff_type (named list) Row of \code{\link{get_ff_types}}.
+#' @family translation functions
 build_scientific_name_table <- function(responses, ff_type) {
 
   # Aggregate scientific names
@@ -135,7 +146,7 @@ build_scientific_name_table <- function(responses, ff_type) {
   # Convert to data.table
   scientific_name_lists <- unlist(scientific_name_lists[!is.empty(scientific_name_lists)], recursive = FALSE)
   scientific_name_lists <- replace_values_in_list(scientific_name_lists, NULL, NA)
-  scientific_names <- rbindlist(scientific_name_lists, fill = TRUE)
+  scientific_names <- data.table::rbindlist(scientific_name_lists, fill = TRUE)
 
   # Clean and filter
   if (nrow(scientific_names) > 0) {
@@ -155,6 +166,13 @@ build_scientific_name_table <- function(responses, ff_type) {
   return(scientific_names[])
 }
 
+#' Build table of common names
+#'
+#' @param responses (response list) Result of \code{\link{query_sources_about_type}}.
+#' @param scientific_names (character vector) Scientific names for filtering (?).
+#' @param normalize_languages (boolean) Whether to normalize language codes.
+#' @param search_names (boolean) Whether to count search results for each name.
+#' @family translation functions
 build_common_name_table <- function(responses, scientific_names = NULL, normalize_languages = FALSE, search_names = FALSE) {
 
   # Aggregate common names
@@ -168,7 +186,7 @@ build_common_name_table <- function(responses, scientific_names = NULL, normaliz
   # Convert to data.table
   common_name_lists <- unlist(common_name_lists[!is.empty(common_name_lists)], recursive = FALSE)
   common_name_lists <- replace_values_in_list(common_name_lists, NULL, NA)
-  common_names <- rbindlist(common_name_lists, fill = TRUE)
+  common_names <- data.table::rbindlist(common_name_lists, fill = TRUE)
   if (nrow(common_names) == 0) {
     return(common_names)
   }
@@ -225,6 +243,12 @@ build_common_name_table <- function(responses, scientific_names = NULL, normaliz
   return(common_names[])
 }
 
+#' Normalize common names
+#'
+#' @param x (character vector) Common names to normalize.
+#' @param x_lower (character vector) Lower case \code{x} (precomputed for speed).
+#' @param x_search (character vector) Search-formatted \code{x} (precomputed for speed).
+#' @family translation functions
 normalize_common_name <- function(x, x_lower = NULL, x_search = NULL) {
   if (is.null(x_lower)) {
     x_lower <- tolower(x)

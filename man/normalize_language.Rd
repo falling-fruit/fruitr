@@ -22,7 +22,6 @@ Returns the highest level ISO or Wikipedia language code corresponding to the IS
 \examples{
 normalize_language("spa")
 normalize_language("Spanish")
-normalize_language("Español")
 normalize_language("Espagnol")
 }
 \seealso{

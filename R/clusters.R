@@ -104,7 +104,7 @@ gridcells_to_lnglat <- function(xyz) {
 #'
 #' Converts Web Mercator (\href{http://spatialreference.org/ref/sr-org/7483/}{EPSG:3857}) quadtree grid cell indices to binary geohashes.
 #'
-#' @param grid_cells Rows of Web Mercator grid cell indices (x, y, zoom).
+#' @param xyz Rows of Web Mercator grid cell indices (x, y, zoom).
 #' @return A character vector of geohashes.
 #' @export
 #' @family cluster functions
@@ -158,6 +158,7 @@ geohashes_to_gridcells <- function(geohashes) {
 
 #' Expand Geohashes
 #'
+#' @param geohashes (character vector) Geohashes to expand.
 #' @export
 #' @family cluster functions
 #' @examples

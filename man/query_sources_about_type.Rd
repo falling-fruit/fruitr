@@ -7,10 +7,21 @@
 query_sources_about_type(ff_type, sources = c("eol", "col", "inaturalist",
   "wikipedia", "wikicommons", "wikispecies"))
 }
+\arguments{
+\item{ff_type}{(named list) Row of \code{\link{get_ff_types}}.}
+
+\item{sources}{(character vector) Sources to query.}
+}
 \description{
 TODO: Seach by scientific synonyms if no results found.
 }
 \examples{
 ff_types <- get_ff_types(urls = TRUE)
 query_sources_about_type(ff_types[id == 14], sources = "eol")
+}
+\seealso{
+Other translation functions: \code{\link{build_common_name_table}},
+  \code{\link{build_scientific_name_table}},
+  \code{\link{normalize_common_name}},
+  \code{\link{parse_sources_about_type}}
 }
