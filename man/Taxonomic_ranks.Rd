@@ -17,6 +17,7 @@ Other constants: \code{\link{Categories}},
   \code{\link{Earth_radius}},
   \code{\link{Google_cs_languages}},
   \code{\link{Language_codes}},
-  \code{\link{Location_import_fields}}
+  \code{\link{Location_import_fields}},
+  \code{\link{Unicode}}
 }
 \keyword{datasets}

@@ -17,6 +17,6 @@ Other constants: \code{\link{Categories}},
   \code{\link{Google_cs_languages}},
   \code{\link{Language_codes}},
   \code{\link{Location_import_fields}},
-  \code{\link{Taxonomic_ranks}}
+  \code{\link{Taxonomic_ranks}}, \code{\link{Unicode}}
 }
 \keyword{datasets}
