@@ -6,6 +6,11 @@
 \usage{
 parse_eol_search(search, types = c("results", "ids"))
 }
+\arguments{
+\item{search}{(response) Result of \code{\link{get_eol_search}}.}
+
+\item{types}{(characte vector) Data types to parse.}
+}
 \description{
 Parse Encyclopedia of Life (EOL) Search Results
 }

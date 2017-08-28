@@ -16,7 +16,7 @@ na.remove(x)
 Silently removes missing values or incomplete cases with \code{\link[base]{NA}}s.
 }
 \examples{
-str(na.omit(c(1, NA)))
+str(stats::na.omit(c(1, NA)))
 str(na.remove(c(1, NA)))
 }
 \seealso{

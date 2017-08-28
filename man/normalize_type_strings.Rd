@@ -20,7 +20,9 @@ Checks type strings against Falling Fruit types and fills in any missing compone
 }
 \examples{
 ff_types <- get_ff_types()
+\dontrun{
 normalize_type_strings("Apple", ff_types)
+}
 normalize_type_strings(c("14", "Apple [Malus]"), ff_types)
 normalize_type_strings(c("", " ,", NA), ff_types)
 normalize_type_strings(c("14: Apple, 14: Apple"), ff_types)

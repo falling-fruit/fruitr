@@ -7,13 +7,22 @@
 parse_inaturalist_search(search, types = c("results", "ids"), exact = TRUE,
   scientific_name = TRUE, ignore.case = TRUE)
 }
+\arguments{
+\item{search}{(response) Result of \code{\link{get_inaturalist_search}}.}
+
+\item{types}{(character vector) Data types to parse.}
+
+\item{exact}{(boolean) Whether to only keep results which match the search string exactly.}
+
+\item{scientific_name}{(boolean) Whether to only keep results which a matching scientific name.}
+
+\item{ignore.case}{(boolean) Whether to ignore case.}
+}
 \description{
 Parse iNaturalist Taxon Search Results
 }
 \examples{
 s <- get_inaturalist_search("Malus domestica")
-str(parse_inaturalist_search(s))
-s <- get_inaturalist_search("Abelmoschus")
 str(parse_inaturalist_search(s))
 }
 \seealso{

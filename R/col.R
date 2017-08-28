@@ -1,21 +1,29 @@
 #' Get Catalogue of Life (COL) Search Results
 #'
-#' See documentation at \url{http://webservice.catalogueoflife.org/col/webservice}.
-#'
+#' @param name (character) String to search for. Must be at least 3 characters. Only exact matches are returned, unless a wildcard (*) is appended (allowed only at the end of the string).
+#' @param format (character) Result format: "json", "xml", or "php".
+#' @param response (character) Result type: "terse" (up to 500 results) or "full" (up to 50 results).
+#' @param start (numeric) Index of the first record to return.
+#' @source \url{http://webservice.catalogueoflife.org/col/webservice}
 #' @family COL functions
 #' @export
 #' @examples
-#' str(content(get_col_search("Malus domestica")))
-#' str(content(get_col_search("Abelmoschus")))
-#' str(content(get_col_search("Prunus")))
+#' s <- get_col_search("Malus domestica")
+#' str(httr::content(s))
 get_col_search <- function(name, format = "json", response = "terse", start = 0) {
-  url <- parse_url("http://www.catalogueoflife.org/col/webservice")
+  url <- "http://www.catalogueoflife.org/col/webservice"
   query <- mget(c("name", "format", "response", "start"))
-  return(GET(url, query = query[sapply(query, "!=", "")]))
+  return(httr::GET(url, query = query[sapply(query, "!=", "")]))
 }
 
 #' Parse Catalogue of Life (COL) Search Results
 #'
+#' @param search (response) Result of \code{\link{parse_col_search}}.
+#' @param types (character vector) Data types to parse.
+#' @param exact (boolean) Whether to keep only results that match the search string exactly.
+#' @param scientific_name (boolean) Whether to keep only results whose scientific name matches the search string.
+#' @param accepted_name (boolean) Whether to keep only results whose accepted name matches the search string.
+#' @param ignore.case (boolean) Whether to ignore case.
 #' @family COL functions
 #' @export
 #' @examples
@@ -23,11 +31,9 @@ get_col_search <- function(name, format = "json", response = "terse", start = 0)
 #' str(parse_col_search(s))
 #' str(parse_col_search(s, accepted_name = FALSE))
 #' str(parse_col_search(s, exact = FALSE))
-#' s <- get_col_search("Apple")
-#' str(parse_col_search(s, scientific_name = FALSE))
 parse_col_search <- function(search, types = c("results", "ids"), exact = TRUE, scientific_name = TRUE, accepted_name = TRUE, ignore.case = TRUE) {
   result <- list()
-  json <- content(search)
+  json <- httr::content(search)
   name <- json$name
   ## Filter results
   if (exact) {
@@ -69,20 +75,25 @@ parse_col_search <- function(search, types = c("results", "ids"), exact = TRUE, 
 #'
 #' See documentation at \url{http://webservice.catalogueoflife.org/col/webservice}.
 #'
+#' @param id (character) COL record ID.
+#' @inheritParams get_col_search
 #' @family COL functions
 #' @export
 #' @examples
 #' s <- get_col_search("Malus domestica")
 #' id <- parse_col_search(s, "ids")$ids[1]
-#' str(content(get_col_page(id)))
+#' pg <- get_col_page(id)
+#' str(httr::content(pg))
 get_col_page <- function(id, format = "json", response = "full") {
-  url <- parse_url("http://www.catalogueoflife.org/col/webservice")
+  url <- "http://www.catalogueoflife.org/col/webservice"
   query <- mget(c("id", "format", "response"))
-  return(GET(url, query = query[sapply(query, "!=", "")]))
+  return(httr::GET(url, query = query[sapply(query, "!=", "")]))
 }
 
 #' Parse Catalogue of Life (COL) Page
 #'
+#' @param page (response) Result of \code{\link{get_col_page}}.
+#' @param types (character) Data types to parse.
 #' @family COL functions
 #' @export
 #' @examples
@@ -137,13 +148,9 @@ parse_col_page <- function(page, types = c("scientific_names", "common_names")) 
 
 #' Build Catalogue of Life (COL) Scientific Name
 #'
+#' @param json (list) Results element from \code{\link{get_col_page}}.
 #' @family COL functions
-#' @examples
-#' id <- get_col_id("Malus domestica")
-#' json <- content(get_col_page(id))$results[[1]]$accepted_name
-#' build_col_scientific_name(json)
-#' str(lapply(json$synonyms, build_col_scientific_name))
-build_col_scientific_name = function(json) {
+build_col_scientific_name <- function(json) {
   if (is.null(json$genus)) {
     return(trimws(json$name))
   } else {

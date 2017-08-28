@@ -6,14 +6,17 @@
 \usage{
 parse_wikispecies_page(page, types = c("common_names"))
 }
+\arguments{
+\item{page}{(response) Result of \code{\link{get_wiki_page}}.}
+
+\item{types}{(character) Data types to parse.}
+}
 \description{
 Parse Wikispecies Page
 }
 \examples{
 pg <- get_wiki_page("https://species.wikimedia.org/wiki/Malus_domestica")
 str(parse_wikispecies_page(pg))
-pg <- get_wiki_page("https://species.wikimedia.org/wiki/Abelmoschus")
-str(parse_wikispecies_page(pg)) # no names
 }
 \seealso{
 Other Wiki functions: \code{\link{build_wiki_url}},

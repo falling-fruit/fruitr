@@ -3,24 +3,69 @@
 \name{get_eol_page}
 \alias{get_eol_page}
 \title{Get Encyclopedia of Life (EOL) Page}
+\source{
+\url{http://eol.org/api/docs/pages}
+}
 \usage{
 get_eol_page(id, batch = FALSE, images_per_page, images_page = 1,
   videos_per_page, videos_page = 1, sounds_per_page, sounds_page = 1,
   maps_per_page, maps_page = 1, texts_per_page, texts_page = 1,
-  iucn = FALSE, subjects = "overview", licenses = "all",
-  details = FALSE, common_names = TRUE, synonyms = TRUE,
-  references = FALSE, taxonomy = TRUE, vetted = 0, cache_ttl,
-  language = "en")
+  subjects = "overview", licenses = "all", details = FALSE,
+  common_names = TRUE, synonyms = TRUE, references = FALSE,
+  taxonomy = TRUE, vetted = 0, cache_ttl, language = "en")
+}
+\arguments{
+\item{id}{(character) EOL Page ID.}
+
+\item{batch}{(boolean) Whether to return a batch.}
+
+\item{images_per_page}{(integer) Max image objects to return.}
+
+\item{images_page}{(integer) Image page number.}
+
+\item{videos_per_page}{(integer) Max video object to return.}
+
+\item{videos_page}{(integer) Video page number.}
+
+\item{sounds_per_page}{(integer) Max sound objects to return.}
+
+\item{sounds_page}{(integer) Sound page number.}
+
+\item{maps_per_page}{(integer) Max map objects to return.}
+
+\item{maps_page}{(integer) Map page number.}
+
+\item{texts_per_page}{(integer) Max text objects to return.}
+
+\item{texts_page}{(integer) Text page number.}
+
+\item{subjects}{(character) Result type: "overview" or "all".}
+
+\item{licenses}{(character) Pipe-delimited list of licenses: "all" or "cc-by", "cc-by-nc", "cc-by-sa", "cc-by-nc-sa", "pd" (public domain), or "na" (not applicable).}
+
+\item{details}{(boolean) Whether to return all metadata for data objects.}
+
+\item{common_names}{(boolean) Whether to return all common names.}
+
+\item{synonyms}{(boolean) Whether to return all scientific synonyms.}
+
+\item{references}{(boolean) Whether to return all references.}
+
+\item{taxonomy}{(boolean) Whether to return taxonomy details from taxon hierarchy providers.}
+
+\item{vetted}{(integer) Trusted content filter level: 0 (all content), 1 (trusted content), 2 (trusted and unreviewed content), 3 (unreviewed content), or 4 (only untrusted content).}
+
+\item{cache_ttl}{(integer) Seconds you wish to have the response cached.}
+
+\item{language}{(character) Response language: "en" or ms, de, es, fr, gl, it, nl, nb, oc, pt-BR, sv, tl, mk, sr, uk, ar, zh-Hans, zh-Hant, or ko.}
 }
 \description{
-See documentation at \url{http://eol.org/api/docs/pages}. Alterations to default parameter values:
-common_names: FALSE => TRUE
-synonyms: FALSE => TRUE
+Alterations to default parameter values: common_names (FALSE => TRUE), synonyms: (FALSE => TRUE).
 }
 \examples{
 s <- get_eol_search("Malus domestica")
 id <- parse_eol_search(s, "ids")$ids[1]
-str(content(get_eol_page(id)))
+str(httr::content(get_eol_page(id)))
 }
 \seealso{
 Other EOL functions: \code{\link{get_eol_search}},

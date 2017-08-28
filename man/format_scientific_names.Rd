@@ -25,12 +25,12 @@ format_scientific_names("Malus")
 format_scientific_names("Malus Batt.")
 format_scientific_names("Tamarix rubella Batt.")
 format_scientific_names("Tamarix lucronensis Sennen & Elias")
-format_scientific_names("Malus ×domestica var. gala", connecting_terms = TRUE)
-format_scientific_names("Malus ×domestica var. gala", connecting_terms = FALSE)
+format_scientific_names("Malus x domestica var. gala", connecting_terms = TRUE)
+format_scientific_names("Malus x domestica var. gala", connecting_terms = FALSE)
 format_scientific_names("Malus pumila 'gala'", cultivars = TRUE)
 format_scientific_names("Malus pumila 'gala'", cultivars = FALSE)
 format_scientific_names("Prunus subg amygdalus")
-format_scientific_names("Malus ×", connecting_terms = FALSE)
+format_scientific_names("Malus x", connecting_terms = FALSE)
 }
 \seealso{
 \code{\link{clean_strings}} for generic string cleaning.

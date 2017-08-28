@@ -17,11 +17,11 @@ match_names_to_ff_types(names, ids = NULL, simplify = c("first", "last",
 
 \item{types}{Falling Fruit types, as returned by \code{\link{get_ff_types}}.}
 
-\item{max_distance}{Maximum distance for fuzzy matching, as calculated by \code{\link{stringdist::stringdistmatrix}}.}
+\item{max_distance}{Maximum distance for fuzzy matching, as calculated by \code{\link[stringdist]{stringdistmatrix}}.}
 
 \item{n_nearest}{Maximum number of nearest fuzzy matches to return.}
 
-\item{...}{Additional arguments passed to \code{\link{stringdist::stringdistmatrix}}.}
+\item{...}{Additional arguments passed to \code{\link[stringdist]{stringdistmatrix}}.}
 }
 \description{
 Match Names Against Falling Fruit Types

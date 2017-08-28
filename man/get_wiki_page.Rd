@@ -6,11 +6,21 @@
 \usage{
 get_wiki_page(url, format = "json", action = "parse", redirects = TRUE)
 }
+\arguments{
+\item{url}{(character) Wiki page URL.}
+
+\item{format}{(character) Response format.}
+
+\item{action}{(character) Response action.}
+
+\item{redirects}{(boolean) Whether to follow redirects.}
+}
 \description{
 Get Wiki Page from API
 }
 \examples{
-str(content(get_wiki_page("https://en.wikipedia.org/wiki/Malus_domestica")))
+pg <- get_wiki_page("https://en.wikipedia.org/wiki/Malus_domestica")
+str(httr::content(pg))
 }
 \seealso{
 Other Wiki functions: \code{\link{build_wiki_url}},

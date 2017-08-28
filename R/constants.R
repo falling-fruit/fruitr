@@ -68,10 +68,10 @@ Earth_circumference <- 2 * pi * Earth_radius
 #'   \item notes - Additional notes.
 #' }
 #'
-#' @export
+#' @format A \code{data.table}.
+#' @name Language_codes
 #' @family constants
-Language_codes <- data.table::as.data.table(read.csv('data/language_codes.csv', stringsAsFactors = FALSE, na.strings = ""))
-
+NULL
 
 #' Google Custom Search Languages
 #'

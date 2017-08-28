@@ -6,14 +6,11 @@
 \usage{
 build_col_scientific_name(json)
 }
+\arguments{
+\item{json}{(list) Results element from \code{\link{get_col_page}}.}
+}
 \description{
 Build Catalogue of Life (COL) Scientific Name
-}
-\examples{
-id <- get_col_id("Malus domestica")
-json <- content(get_col_page(id))$results[[1]]$accepted_name
-build_col_scientific_name(json)
-str(lapply(json$synonyms, build_col_scientific_name))
 }
 \seealso{
 Other COL functions: \code{\link{get_col_page}},

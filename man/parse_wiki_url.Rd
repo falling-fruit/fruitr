@@ -6,6 +6,11 @@
 \usage{
 parse_wiki_url(url, api = FALSE)
 }
+\arguments{
+\item{url}{(character) URL.}
+
+\item{api}{(boolean) Whether \code{url} is for an API.}
+}
 \description{
 Parse Wiki URL
 }

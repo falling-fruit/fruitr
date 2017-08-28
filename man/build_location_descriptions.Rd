@@ -26,7 +26,11 @@ A faster, vectorized alternative of \code{\link{build_location_description}} for
 }
 \examples{
 type_strings <- c("Apple", "Pear", "Pear")
-notes <- list(c("Planted 1999", "Height 10 m"), c("Planted 1999", "Height 20 m"), c("Planted 1999", "Height 20 m"))
+notes <- list(
+  c("Planted 1999", "Height 10 m"),
+  c("Planted 1999", "Height 20 m"),
+  c("Planted 1999", "Height 20 m")
+)
 build_location_descriptions(type_strings, notes)
 notes <- list(c("Planted 1999", NA), c(NA, "Height 20 m"), c(NA, NA))
 build_location_descriptions(type_strings, notes)

@@ -2,33 +2,36 @@
 #'
 #' Undocumented, but equivalent to the HTML equivalent \url{http://www.inaturalist.org/taxa/search}.
 #'
-#' @param is_active Either 'true', 'false', or 'any'.
+#' @param q (character) Search string.
+#' @param is_active Either "true", "false", or "any".
 #' @export
 #' @family iNaturalist functions
 #' @examples
-#' str(content(get_inaturalist_search("Malus domestica")))
-#' str(content(get_inaturalist_search("Abelmoschus")))
-#' str(content(get_inaturalist_search("Citrus x sinensis")))
-get_inaturalist_search <- function(q, is_active = 'true') {
-  q <- gsub("\\s*x\\s*", " × ", q)
-  url <- parse_url("http://www.inaturalist.org/taxa/search.json")
+#' s <- get_inaturalist_search("Malus domestica")
+#' str(httr::content(s))
+get_inaturalist_search <- function(q, is_active = "true") {
+  q <- gsub("\\s*x\\s*", " \u00d7 ", q)
+  url <- "http://www.inaturalist.org/taxa/search.json"
   query <- mget(c("q", "is_active"))
-  return(GET(url, query = query[sapply(query, "!=", "")]))
+  return(httr::GET(url, query = query[sapply(query, "!=", "")]))
 }
 
 #' Parse iNaturalist Taxon Search Results
 #'
+#' @param search (response) Result of \code{\link{get_inaturalist_search}}.
+#' @param types (character vector) Data types to parse.
+#' @param exact (boolean) Whether to only keep results which match the search string exactly.
+#' @param scientific_name (boolean) Whether to only keep results which a matching scientific name.
+#' @param ignore.case (boolean) Whether to ignore case.
 #' @export
 #' @family iNaturalist functions
 #' @examples
 #' s <- get_inaturalist_search("Malus domestica")
 #' str(parse_inaturalist_search(s))
-#' s <- get_inaturalist_search("Abelmoschus")
-#' str(parse_inaturalist_search(s))
 parse_inaturalist_search <- function(search, types = c("results", "ids"), exact = TRUE, scientific_name = TRUE, ignore.case = TRUE) {
   result <- list()
-  json <- content(search)
-  q <- parse_url(search$url)$query$q
+  json <- httr::content(search)
+  q <- httr::parse_url(search$url)$query$q
   ## Filter results
   if (exact) {
     q <- paste0("^", q, "$")
@@ -58,27 +61,27 @@ parse_inaturalist_search <- function(search, types = c("results", "ids"), exact 
 #'
 #' Undocumented, but equivalent to the HTML equivalent \url{http://www.inaturalist.org/taxa/:id.json}.
 #'
-#' @export
-#' @family iNaturalist functions
-#' @examples
-#' s <- get_inaturalist_search("Malus domestica")
-#' id <- parse_inaturalist_search(s, "ids")$ids[1]
-#' str(content(get_inaturalist_page(id)))
-get_inaturalist_page <- function(id) {
-  url <- parse_url(paste0("http://www.inaturalist.org/taxa/", id, ".json"))
-  return(GET(url))
-}
-
-#' Parse iNaturalist Taxon Page
-#'
+#' @param id iNaturalist page ID.
 #' @export
 #' @family iNaturalist functions
 #' @examples
 #' s <- get_inaturalist_search("Malus domestica")
 #' id <- parse_inaturalist_search(s, "ids")$ids[1]
 #' pg <- get_inaturalist_page(id)
-#' str(parse_inaturalist_page(pg))
-#' s <- get_inaturalist_search("Abelmoschus")
+#' str(httr::content(pg))
+get_inaturalist_page <- function(id) {
+  url <- paste0("http://www.inaturalist.org/taxa/", id, ".json")
+  return(httr::GET(url))
+}
+
+#' Parse iNaturalist Taxon Page
+#'
+#' @param page (response) Result of \code{\link{get_inaturalist_page}}.
+#' @param types (character vector) Data types to parse.
+#' @export
+#' @family iNaturalist functions
+#' @examples
+#' s <- get_inaturalist_search("Malus domestica")
 #' id <- parse_inaturalist_search(s, "ids")$ids[1]
 #' pg <- get_inaturalist_page(id)
 #' str(parse_inaturalist_page(pg))

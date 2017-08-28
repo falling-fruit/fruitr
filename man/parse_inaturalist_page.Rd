@@ -6,15 +6,16 @@
 \usage{
 parse_inaturalist_page(page, types = c("scientific_names", "common_names"))
 }
+\arguments{
+\item{page}{(response) Result of \code{\link{get_inaturalist_page}}.}
+
+\item{types}{(character vector) Data types to parse.}
+}
 \description{
 Parse iNaturalist Taxon Page
 }
 \examples{
 s <- get_inaturalist_search("Malus domestica")
-id <- parse_inaturalist_search(s, "ids")$ids[1]
-pg <- get_inaturalist_page(id)
-str(parse_inaturalist_page(pg))
-s <- get_inaturalist_search("Abelmoschus")
 id <- parse_inaturalist_search(s, "ids")$ids[1]
 pg <- get_inaturalist_page(id)
 str(parse_inaturalist_page(pg))

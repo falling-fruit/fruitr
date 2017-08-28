@@ -14,7 +14,7 @@ apply_match_table(dt, match_table, drop = FALSE,
 
 \item{drop}{Whether to drop unassigned rows in \code{dt}.}
 
-\item{Falling}{Fruit types, as returned by \code{\link{get_ff_types}}.}
+\item{types}{Falling Fruit types, as returned by \code{\link{get_ff_types}}.}
 }
 \description{
 Apply Match Table to Locations

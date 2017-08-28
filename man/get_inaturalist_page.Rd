@@ -6,13 +6,17 @@
 \usage{
 get_inaturalist_page(id)
 }
+\arguments{
+\item{id}{iNaturalist page ID.}
+}
 \description{
 Undocumented, but equivalent to the HTML equivalent \url{http://www.inaturalist.org/taxa/:id.json}.
 }
 \examples{
 s <- get_inaturalist_search("Malus domestica")
 id <- parse_inaturalist_search(s, "ids")$ids[1]
-str(content(get_inaturalist_page(id)))
+pg <- get_inaturalist_page(id)
+str(httr::content(pg))
 }
 \seealso{
 Other iNaturalist functions: \code{\link{get_inaturalist_search}},

@@ -6,14 +6,17 @@
 \usage{
 parse_wikicommons_page(page, types = c("common_names"))
 }
+\arguments{
+\item{page}{(response) Result of \code{\link{get_wiki_page}}.}
+
+\item{types}{(character) Data types to parse.}
+}
 \description{
 Parse Wikimedia Commons Page
 }
 \examples{
 pg <- get_wiki_page("https://commons.wikimedia.org/wiki/Malus_domestica")
 str(parse_wikicommons_page(pg))
-pg <- get_wiki_page("https://commons.wikimedia.org/wiki/Abelmoschus")
-str(parse_wikicommons_page(pg)) # no names
 }
 \seealso{
 Other Wiki functions: \code{\link{build_wiki_url}},
