@@ -38,7 +38,8 @@ build_location_description(type_strings, notes)
 build_location_description(type_strings, notes, merge = TRUE)
 }
 \seealso{
-Other Falling Fruit functions: \code{\link{build_type_strings}},
+Other Falling Fruit functions: \code{\link{build_location_descriptions}},
+  \code{\link{build_type_strings}},
   \code{\link{expand_category_mask}},
   \code{\link{get_ff_types}},
   \code{\link{match_type_strings}},
