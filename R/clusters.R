@@ -159,6 +159,7 @@ geohashes_to_gridcells <- function(geohashes) {
 #' Expand Geohashes
 #'
 #' @param geohashes (character vector) Geohashes to expand.
+#' @return Character vector of each geohash in \code{geohashes} followed by its parents.
 #' @export
 #' @family cluster functions
 #' @examples
