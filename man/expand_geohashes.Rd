@@ -9,6 +9,9 @@ expand_geohashes(geohashes)
 \arguments{
 \item{geohashes}{(character vector) Geohashes to expand.}
 }
+\value{
+Character vector of each geohash in \code{geohashes} followed by its parents.
+}
 \description{
 Expand Geohashes
 }
