@@ -24,7 +24,8 @@ match_type_strings("Apple", ff_types)
 match_type_strings(c("Apple [Malus domestica]", "Pear [Pyrus]"), ff_types)
 }
 \seealso{
-Other Falling Fruit functions: \code{\link{build_location_description}},
+Other Falling Fruit functions: \code{\link{build_location_descriptions}},
+  \code{\link{build_location_description}},
   \code{\link{build_type_strings}},
   \code{\link{expand_category_mask}},
   \code{\link{get_ff_types}},
