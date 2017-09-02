@@ -13,24 +13,18 @@ Depends:
     R (>= 3.2.0)
 Imports:
     data.table,
-    DBI,
     foreign,
     httr,
-    Rcpp,
     rgdal,
-    RJSONIO,
-    RPostgreSQL,
     stringdist,
     stringr,
     xml2,
-    RCurl,
     jsonlite,
     sp,
     methods,
     stats,
     utils,
     tools,
-    XML,
     magrittr
 Remotes:
     github::rstats-db/RPostgres
