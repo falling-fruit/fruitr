@@ -50,5 +50,5 @@ Other helper functions: \code{\link{capitalize_words}},
   \code{\link{parse_scientific_names}},
   \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
-  \code{\link{sptransform}}, \code{\link{unique_na}}
+  \code{\link{sp_transform}}, \code{\link{unique_na}}
 }

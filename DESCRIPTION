@@ -30,7 +30,8 @@ Imports:
     stats,
     utils,
     tools,
-    XML
+    XML,
+    magrittr
 Remotes:
     github::rstats-db/RPostgres
 RoxygenNote: 6.0.1

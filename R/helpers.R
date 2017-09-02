@@ -475,6 +475,7 @@ subset_search_results <- function(strings, values, ignore.case = TRUE) {
 #' @param xy Rows of coordinates (x, y).
 #' @param from Initial projection as numeric (EPSG code), character (proj4 string), or \code{\link[sp]{CRS}}.
 #' @param to Target projection as numeric (EPSG code), character (proj4 string), or \code{\link[sp]{CRS}}.
+#' @param cols Column numbers or names specifying which xy columns are x and y coordinates.
 #' @return Transformed coordinates coerced to the same class as \code{xy}.
 #' @export
 #' @seealso \code{\link[sp]{spTransform}}
@@ -482,29 +483,49 @@ subset_search_results <- function(strings, values, ignore.case = TRUE) {
 #' @examples
 #' from <- 21781
 #' to <- 4326
-#' sptransform(sptransform(c(500, 1000), from, to), to, from)
-sptransform <- function(xy, from = tryCatch(sp::proj4string(xy)), to = 4326) {
-  if (!methods::is(from, "CRS")) {
+#' sp_transform(sp_transform(c(500, 1000), from, to), to, from)
+sp_transform <- function(xy, from = NULL, to = 4326, cols = 1:2) {
+  sp_from <- tryCatch(sp::proj4string(xy), error = function (e) NULL)
+  is_sp <- !is.null(sp_from)
+  if (is.null(from)) {
+    from <- sp_from
+  } else {
     if (is.numeric(from)) {
-      from <- sp::CRS(paste0("+init=epsg:", from))
-    } else {
-      from <- sp::CRS(from)
+      from <- paste0("+init=epsg:", from)
     }
   }
   if (is.numeric(to)) {
-    to <- sp::CRS(paste0("+init=epsg:", to))
+    to <- paste0("+init=epsg:", to)
+  }
+  if (is_sp) {
+    txy <- xy %>%
+      sp::`proj4string<-`(from) %>%
+      sp::spTransform(to)
+    return(txy)
+  }
+  is_vector <- is.vector(xy)
+  if (is_vector) {
+    txy <- t(xy)
   } else {
-    to <- sp::CRS(to)
+    txy <- xy
   }
-  xy_class <- class(xy)
-  if (is.vector(xy)) {
-    xy <- t(xy[1:2])
+  # FIXME: Restore original class if data.table, tibble?
+  txy %<>% as.data.frame()
+  is_complete <- stats::complete.cases(txy[, cols])
+  if (!any(is_complete)) {
+    return(xy)
   }
-  xy <- as.data.frame(xy)
-  sp::coordinates(xy) <- names(xy)[1:2]
-  sp::proj4string(xy) <- from
-  txy <- sp::spTransform(xy, to)
-  return(methods::as(txy@coords, xy_class))
+  txy %<>%
+    subset(is_complete) %>%
+    sp::`coordinates<-`(cols) %>%
+    sp::`proj4string<-`(from) %>%
+    sp::spTransform(to)
+  if (is_vector) {
+    xy[cols] <- unlist(txy@coords)
+  } else {
+    xy[is_complete, cols] <- txy@coords
+  }
+  xy
 }
 
 #' Transform CH1903 to WGS84 Coordinates
