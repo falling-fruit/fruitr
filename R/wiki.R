@@ -54,7 +54,7 @@ build_wiki_url <- function(wiki, type, page, url = NULL) {
 #' pg <- get_wiki_page("https://en.wikipedia.org/wiki/Malus_domestica")
 #' str(httr::content(pg))
 get_wiki_page <- function(url, format = "json", action = "parse", redirects = TRUE) {
-  url <- RCurl::curlUnescape(url)
+  url <- utils::URLdecode(url)
   params <- parse_wiki_url(url)
   url <- paste0("https://", params$wiki, ".", params$type, ".org/w/api.php")
   query <- c(page = params$page, mget(c("format", "action", "redirects")))
