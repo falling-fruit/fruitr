@@ -5,7 +5,7 @@
 \title{Build Location Descriptions}
 \usage{
 build_location_descriptions(type_strings, notes = NULL, note_sep = ". ",
-  frequency = TRUE, frequency_in = "[]")
+  frequency = TRUE, frequency_in = "[]", ...)
 }
 \arguments{
 \item{type_strings}{Character vector of type strings.}
@@ -17,6 +17,8 @@ build_location_descriptions(type_strings, notes = NULL, note_sep = ". ",
 \item{frequency}{Whether to display frequency before \code{type_strings}.}
 
 \item{frequency_in}{String of two characters in which to display the frequencies.}
+
+\item{...}{Arguments passed to other methods (unused).}
 }
 \value{
 Character string of the summarized and concatenated values.

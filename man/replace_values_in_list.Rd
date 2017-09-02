@@ -35,7 +35,7 @@ Other helper functions: \code{\link{capitalize_words}},
   \code{\link{melt_by_listcol}}, \code{\link{na.remove}},
   \code{\link{normalize_language}},
   \code{\link{parse_scientific_names}},
-  \code{\link{quotemeta}}, \code{\link{sptransform}},
+  \code{\link{quotemeta}}, \code{\link{sp_transform}},
   \code{\link{subset_search_results}},
   \code{\link{unique_na}}
 }

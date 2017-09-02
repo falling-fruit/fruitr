@@ -4,24 +4,18 @@
 \alias{read_locations}
 \title{Load Locations Dataset}
 \usage{
-read_locations(file, xy = c("lng", "lat"), id = "id",
-  CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), stringsAsFactors = FALSE,
-  na.strings = c("", "NA", "N/A", "na", "n/a"), ...)
+read_locations(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, ...)
 }
 \arguments{
 \item{file}{The path of the file to be read.}
 
-\item{xy}{Names of the x and y coordinate fields (renamed to "lng", "lat" respectively).}
+\item{id}{Name of the column with a unique identifier (renamed to "id"). If \code{NULL}, locations are assigned an integer id corresponding to their order of appearance in the file.}
 
-\item{id}{Name of the id field (renamed to "id").}
+\item{xy}{(delimited text files only) Names of the columns with x and y coordinates (renamed to "lng", "lat" respectively).}
 
-\item{CRSobj}{Coordinate reference system (\code{\link[sp]{CRS}}).}
+\item{proj4}{Current coordinate reference system expressed as a proj.4 string (\url{http://proj4.org/parameters.html}) or EPSG integer code (\url{http://spatialreference.org/ref/epsg/}). If specified, takes precendence over any embedded value (spatial data). If \code{NULL}, the embedded value is used (spatial data) or an error is thrown if missing.}
 
-\item{stringsAsFactors}{(boolean) Whether to convert strings to factors.}
-
-\item{na.strings}{(character vector) Strings to read as \code{NA}.}
-
-\item{...}{Additional parameters passed to \code{\link[data.table]{fread}} (delimited files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).}
+\item{...}{Additional parameters passed to \code{\link[data.table]{fread}} (delimited text files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).}
 }
 \description{
 Load Locations Dataset

@@ -6,7 +6,7 @@ Load the locations as a `data.table` with unique identifiers (`id`), WGS84 coord
 
 ```R
 file <- "PATH/TO/FILE"
-dt <- fruitr::read_locations(file, id = "ID", xy = c("LNG", "LAT"), CRSobj = CRS("+proj=longlat +ellps=WGS84"))
+dt <- fruitr::read_locations(file, id = "ID", xy = c("LNG", "LAT"), proj4 = "+proj=longlat +ellps=WGS84")
 ```
 
 `fruitr::read_locations()` supports most delimited text files and [OGR vector formats](http://www.gdal.org/ogr_formats.html).
@@ -85,7 +85,7 @@ Where the matched Falling Fruit types are displayed using the following conventi
 
 ### Edit type assignments
 
-Assign groupings to Falling Fruit type(s) by entering them into the `types` column, as a comma-delimited list, following the format above (e.g. `114`, `114: Apple [Malus]`). If the type does not already exist (e.g. `New common [New scientific]`), a new type will be created on import. Tag a grouping as unverified by entering `x` into the `unverified` column. You can record new names by appending them using the format `{locale: name}` (e.g. `14: Apple [Malus pumila] {scientific: Malus paradisiaca, en: Paradise apple, Common apple}`), although this is currrently unused.
+Assign groupings to Falling Fruit type(s) by entering them into the `types` column, as a comma-delimited list, following the format above (e.g. `114`, `114: Apple [Malus]`). If the type does not already exist (e.g. `New common [New scientific]`), a new type will be created on import. Tag a grouping as unverified by entering `x` into the `unverified` column. You can record new names by appending them using the format `{locale: name}` (e.g. `14: Apple [Malus pumila] {scientific: Malus paradisiaca, en: Paradise apple, Common apple}`), although this is currently unused.
 
 As needed, reference the Falling Fruit type taxonomy at [fallingfruit.org/types](https://fallingfruit.org/types) (admin-only).
 

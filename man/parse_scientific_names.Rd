@@ -33,7 +33,7 @@ Other helper functions: \code{\link{capitalize_words}},
   \code{\link{normalize_language}},
   \code{\link{quotemeta}},
   \code{\link{replace_values_in_list}},
-  \code{\link{sptransform}},
+  \code{\link{sp_transform}},
   \code{\link{subset_search_results}},
   \code{\link{unique_na}}
 }

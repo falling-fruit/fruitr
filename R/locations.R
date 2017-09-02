@@ -1,69 +1,127 @@
 #' Load Locations Dataset
 #'
 #' @param file The path of the file to be read.
-#' @param xy Names of the x and y coordinate fields (renamed to "lng", "lat" respectively).
-#' @param id Name of the id field (renamed to "id").
-#' @param CRSobj Coordinate reference system (\code{\link[sp]{CRS}}).
-#' @param stringsAsFactors (boolean) Whether to convert strings to factors.
-#' @param na.strings (character vector) Strings to read as \code{NA}.
-#' @param ... Additional parameters passed to \code{\link[data.table]{fread}} (delimited files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).
+#' @param id Name of the column with a unique identifier (renamed to "id"). If \code{NULL}, locations are assigned an integer id corresponding to their order of appearance in the file.
+#' @param xy (delimited text files only) Names of the columns with x and y coordinates (renamed to "lng", "lat" respectively).
+#' @param proj4 Current coordinate reference system expressed as a proj.4 string (\url{http://proj4.org/parameters.html}) or EPSG integer code (\url{http://spatialreference.org/ref/epsg/}). If specified, takes precendence over any embedded value (spatial data). If \code{NULL}, the embedded value is used (spatial data) or an error is thrown if missing.
+#' @param ... Additional parameters passed to \code{\link[data.table]{fread}} (delimited text files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).
 #' @export
 #' @family location import functions
-read_locations <- function(file, xy = c("lng", "lat"), id = "id", CRSobj = sp::CRS("+proj=longlat +ellps=WGS84"), stringsAsFactors = FALSE, na.strings = c("", "NA", "N/A", "na", "n/a"), ...) {
+read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, ...) {
+
+  # Prepare arguments
+  file <- tools::file_path_as_absolute(file)
+  to_proj4 <- "+init=epsg:4326"
+
+  # Read kml
+  read_kml <- function(file, ...) {
+    xml <- xml2::read_xml(file, ...)
+    # FIXME: Only retains points
+    placemarks <- xml %>%
+      xml2::xml_find_all(xpath = "//*[local-name() = 'Placemark'][*[local-name() = 'Point']]") %>%
+      sapply(xml2::as_list)
+    name <- placemarks %>%
+      sapply(function(p) if (is.null(p$name)) NA else p$name) %>%
+      unlist()
+    description <- placemarks %>%
+      sapply(function(p) if (is.null(p$description)) NA else p$description) %>%
+      unlist()
+    coordinates <- placemarks %>%
+      sapply(function(p) p$Point$coordinates) %>%
+      unlist() %>%
+      stringr::str_extract_all(pattern = "([-0-9\\.]+)") %>%
+      sapply(as.numeric) %>%
+      t() %>%
+      sp_transform(
+        from = if (is.null(proj4)) "+init=epsg:4326" else proj4,
+        to = to_proj4
+      )
+    data.table::data.table(name, description, lng = coordinates[, 1], lat = coordinates[, 2], stringsAsFactors = FALSE)
+  }
+
+  # Read ogr
+  read_ogr <- function(file, ...) {
+    layers <- rgdal::ogrListLayers(file)
+    read_layer <- function(layer, ...) {
+      shp <- rgdal::readOGR(file, layer, stringsAsFactors = FALSE, ...) %>%
+        sp_transform(from = proj4, to = to_proj4)
+      # FIXME: Only retains points
+      if (methods::.hasSlot(shp, "coords")) {
+        df <- shp@data
+        df$lng <- shp@coords[, 1]
+        df$lat <- shp@coords[, 2]
+        cbind(layer, df, stringsAsFactors = FALSE)
+      } else {
+        NULL
+      }
+    }
+    layers %>%
+      lapply(read_layer, ...) %>%
+      Reduce(rbind, .) %>%
+      data.table::as.data.table()
+  }
+
+  # Read dbf
+  read_dbf <- function(file, ...) {
+    df <- foreign::read.dbf(file, as.is = TRUE, ...)
+    tryCatch(
+      df <- sp_transform(df, from = proj4, to = to_proj4, cols = xy),
+      error = function (e) warning(paste0("Spatial transformation failed:\n", e))
+    )
+    df %>%
+      data.table::as.data.table()
+  }
+
+  # Read delim
+  read_delim <- function(file, ...) {
+    df <- data.table::fread(file, stringsAsFactors = FALSE, data.table = FALSE, ...)
+    tryCatch(
+      df <- sp_transform(df, from = proj4, to = to_proj4, cols = xy),
+      error = function (e) warning(paste0("Spatial transformation failed:\n", e))
+    )
+    df %>%
+      data.table::as.data.table()
+  }
 
   # Read file
-  file <- tools::file_path_as_absolute(file)
-  read_kml <- function(file, CRSobj, stringsAsFactors = FALSE, ...) {
-    xml <- xml2::read_xml(file, ...)
-    placemarks <- sapply(xml2::xml_find_all(xml, "//*[local-name() = 'Placemark']"), xml2::as_list)
-    name <- unlist(sapply(placemarks, function(p) if (is.null(p$name)) NA else p$name))
-    description <- unlist(sapply(placemarks, function(p) if (is.null(p$description)) NA else p$description))
-    coordinates <- unlist(sapply(placemarks, function(p) p$Point$coordinates))
-    shp <- as.data.frame(t(sapply(stringr::str_extract_all(coordinates, "([-0-9\\.]+)"), as.numeric)))
-    sp::coordinates(shp) <- names(shp)[1:2]
-    sp::proj4string(shp) <- sp::CRS("+proj=longlat +ellps=WGS84")
-    shp <- sp::spTransform(shp, CRSobj)
-    return(data.frame(name, description, lng = shp@coords[, 1], lat = shp@coords[, 2], stringsAsFactors = stringsAsFactors))
-  }
-  read_ogr <- function(file, CRSobj, stringsAsFactors = FALSE, ...) {
-    layers <- rgdal::ogrListLayers(file)
-    read_layer <- function(layer, stringsAsFactors = FALSE, ...) {
-      shp <- rgdal::readOGR(file, layer, stringsAsFactors = stringsAsFactors, ...)
-      shp <- sp::spTransform(shp, CRSobj)
-      df <- shp@data
-      df$lng <- shp@coords[, 1]
-      df$lat <- shp@coords[, 2]
-      df = cbind(df, layer, stringsAsFactors = stringsAsFactors)
+  is_ogr <- try(rgdal::ogrListLayers(file), silent = TRUE) %>%
+    {class(.) != "try-error"}
+  dt <- switch(
+    tolower(tools::file_ext(file)),
+    dbf = foreign::read.dbf(file, ...),
+    kml = if (length(rgdal::ogrListLayers(file)) > 1) {
+        read_kml(file, ...)
+      } else {
+        read_ogr(file, ...)
+      },
+    if (is_ogr) {
+      read_ogr(file, ...)
+    } else {
+      read_delim(file, ...)
     }
-    return(Reduce(rbind, lapply(layers, read_layer, stringsAsFactors = stringsAsFactors, ...)))
-  }
-  df <- switch(tools::file_ext(file),
-    dbf = foreign::read.dbf(file, as.is = !stringsAsFactors, ...),
-    kml = if (length(rgdal::ogrListLayers(file)) > 1) read_kml(file, CRSobj, stringsAsFactors = stringsAsFactors, ...) else read_ogr(file, CRSobj, ...),
-    tryCatch(data.table::fread(file, stringsAsFactors = stringsAsFactors, na.strings = na.strings, ...), error = function(e) read_ogr(file, CRSobj, stringsAsFactors = stringsAsFactors, ...))
   )
 
   # Standardize coordinate fields
-  if (all(!is.empty(xy), xy %in% names(df))) {
-    names(df)[names(df) == xy[1]] = "lng"
-    names(df)[names(df) == xy[2]] = "lat"
+  if (all(!is.empty(xy), xy %in% names(dt))) {
+    data.table::setnames(dt, xy, c("lng", "lat"))
   } else {
     warning('No coordinates available!')
   }
 
   # Standardize id field
-  if (all(!is.empty(id), id %in% names(df))) {
-    names(df)[names(df) == id] = "id"
+  if (all(!is.empty(id), id %in% names(dt))) {
+    data.table::setnames(id, "id")
   } else {
-    df$id <- 1:nrow(df)
+    dt[, id := 1:nrow(dt)]
   }
-  df$id <- as.character(df$id)
-  if (any(duplicated(df$id))) {
+  dt[, id := as.character(id)]
+  if (any(duplicated(dt$id))) {
     warning("ID field contains duplicates.")
   }
+  data.table::setkey(dt, id)
 
   # return
-  return(data.table::data.table(df, key = "id"))
+  dt
 }
 
 #' Match Names Against Falling Fruit Types
