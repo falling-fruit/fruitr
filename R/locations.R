@@ -88,12 +88,8 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
     {class(.) != "try-error"}
   dt <- switch(
     tolower(tools::file_ext(file)),
-    dbf = foreign::read.dbf(file, ...),
-    kml = if (length(rgdal::ogrListLayers(file)) > 1) {
-        read_kml(file, ...)
-      } else {
-        read_ogr(file, ...)
-      },
+    dbf = read_dbf(file, ...),
+    kml = read_kml(file, ...),
     if (is_ogr) {
       read_ogr(file, ...)
     } else {
@@ -114,7 +110,6 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   } else {
     dt[, id := 1:nrow(dt)]
   }
-  dt[, id := as.character(id)]
   if (any(duplicated(dt$id))) {
     warning("ID field contains duplicates.")
   }
