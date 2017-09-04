@@ -18,15 +18,9 @@ Expand Geohashes
 \examples{
 expand_geohashes("0011")
 expand_geohashes(c("0011", "110011"))
-xyz <- lnglat_to_gridcells(c(123.4567, 12.3456), 31)
+xyz <- xy_to_gridcells(lnglat_to_xy(cbind(123.4567, 12.3456)), 20)
 geohashes <- gridcells_to_geohashes(xyz)
 exyz <- geohashes_to_gridcells(expand_geohashes(geohashes))
-lnglat <- gridcells_to_lnglat(exyz)
+lnglat <- xy_to_lnglat(gridcells_to_xy(exyz))
 cbind(exyz, lnglat)
-}
-\seealso{
-Other cluster functions: \code{\link{geohashes_to_gridcells}},
-  \code{\link{gridcells_to_geohashes}},
-  \code{\link{gridcells_to_lnglat}}, \code{\link{itostr}},
-  \code{\link{lnglat_to_gridcells}}
 }

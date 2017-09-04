@@ -27,10 +27,4 @@ itostr(c(0, 1, 2, 10), base = 2, nchars = 4)
 }
 \seealso{
 \code{\link[base]{strtoi}} for the reverse conversion.
-
-Other cluster functions: \code{\link{expand_geohashes}},
-  \code{\link{geohashes_to_gridcells}},
-  \code{\link{gridcells_to_geohashes}},
-  \code{\link{gridcells_to_lnglat}},
-  \code{\link{lnglat_to_gridcells}}
 }
