@@ -26,6 +26,4 @@ Imports:
     utils,
     tools,
     magrittr
-Remotes:
-    github::rstats-db/RPostgres
 RoxygenNote: 6.0.1
