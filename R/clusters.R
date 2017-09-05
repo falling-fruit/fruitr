@@ -28,7 +28,7 @@ itostr <- function(x, base = 10L, nchars = 0L) {
    stop(paste("Base", base, "not supported"))
   }
   x <- as.integer(x)
-  sprintf(paste0("%0", nchars, "s"), binary(x))
+  gsub(" ", "0", sprintf(paste0("%0", nchars, "s"), binary(x)))
 }
 
 #' Convert between WGS84 and Web Mercator Coordinates
