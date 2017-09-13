@@ -9,6 +9,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+Falling Fruit aspires to be the world's most comprehensive foraging map. To this end, we seek out and import external datasets - many of which are vast and detailed municipal tree inventories containing hundreds of different species. We have developed a workflow to assist a human in preparing these data for import.
+
 ## Read locations from file
 
 Load the locations as a `data.table` with unique identifiers (`id`), WGS84 coordinates (`lng`,`lat`), and any other available fields:
@@ -136,7 +138,7 @@ dt <- fruitr::apply_match_table(dt, match_table, drop = FALSE, types = ff_types)
 
 ## Format optional fields
 
-#### `address`
+### `address`
 
 Full address (street address, city, state/province, zip code, country), geocoded to coordinates during import. *Required for locations without coordinates* (`lng`, `lat`).
 
@@ -144,7 +146,7 @@ Full address (street address, city, state/province, zip code, country), geocoded
 dt[, address := NA_character_]
 ```
 
-#### `author`
+### `author`
 
 Author name, as displayed on the map.
 
@@ -152,7 +154,7 @@ Author name, as displayed on the map.
 dt[, author := NA_character_]
 ```
 
-#### `description`
+### `description`
 
 Information displayed in the location infobox. `<br>` (HTML line breaks) are converted to `\n` (newline) characters. No other markup is currently supported. For imported data, this should be used to contain the fields used for matching to Falling Fruit types (e.g. formatted with `fruitr::build_type_strings()`) as `description` is later passed as the `types` argument in `fruitr::build_location_description()`. Additional information is added to `notes` (see below).
 
@@ -162,7 +164,7 @@ scientific_names <- fruitr::clean_strings(dt[["SCIENTIFIC_NAME"]]) # or NULL
 dt[, description := fruitr::build_type_strings(ids = NULL, common_names, scientific_names, science_in = "()")]
 ```
 
-#### `notes`
+### `notes`
 
 Vector of additional strings later appended to the description by `fruitr::build_location_description()`.
 
@@ -170,7 +172,7 @@ Vector of additional strings later appended to the description by `fruitr::build
 dt[, notes := Map(c, NA_character_)]
 ```
 
-#### `access`
+### `access`
 
 Access status, on a scale from 1 to 5:
 
@@ -184,7 +186,7 @@ Access status, on a scale from 1 to 5:
 dt[, access := NA_integer_]
 ```
 
-#### `season.start`, `season.stop`
+### `season.start`, `season.stop`
 
 Month that harvesting begins and ends, respectively, from 1 (January) to 12 (December).
 
@@ -193,7 +195,7 @@ dt[, season.start := NA_integer_]
 dt[, season.stop := NA_integer_]
 ```
 
-#### `no.season`
+### `no.season`
 
 Whether seasonality does not apply. Enter `x` if true, otherwise leave blank.
 
@@ -201,7 +203,7 @@ Whether seasonality does not apply. Enter `x` if true, otherwise leave blank.
 dt[, no.season := NA_character_]
 ```
 
-#### `yield.rating`, `quality.rating`
+### `yield.rating`, `quality.rating`
 
 Yield and quality, on a scale from 1 to 5:
 
@@ -216,7 +218,7 @@ dt[, yield.rating := NA_integer_]
 dt[, quality.rating := NA_integer_]
 ```
 
-#### `photo.url`
+### `photo.url`
 
 Full online path to a photo. A review is created with the photo added during import.
 
