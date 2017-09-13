@@ -8,3 +8,5 @@ The package is not on CRAN. To install in R, use [devtools](https://github.com/h
 install.packages("devtools")
 devtools::install_github("falling-fruit/fruitr")
 ```
+
+The package [`rgdal`](https://cran.r-project.org/web/packages/rgdal/index.html) is not a required dependency, but is needed by `fruitr::read_locations()` for reading [OGR vector formats](http://www.gdal.org/ogr_formats.html).
