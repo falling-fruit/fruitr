@@ -12,7 +12,7 @@
 query_sources_about_type <- function(ff_type, sources = c("eol", "col", "inaturalist", "wikipedia", "wikicommons", "wikispecies")) {
 
   # Initialize type
-  en_name <- ff_type$name
+  en_name <- ff_type$en_name
   scientific_name <- ff_type$scientific_name
   taxonomic_rank <- ff_type$taxonomic_rank
   wikipedia_url <- ff_type$wikipedia_url
