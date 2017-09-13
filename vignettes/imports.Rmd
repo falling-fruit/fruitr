@@ -1,15 +1,24 @@
-## Prepare locations for import
+---
+title: "Imports"
+author: "Ethan Welty"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Imports}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
-### Read locations from file
+## Read locations from file
 
 Load the locations as a `data.table` with unique identifiers (`id`), WGS84 coordinates (`lng`,`lat`), and any other available fields:
 
 ```R
 file <- "PATH/TO/FILE"
-dt <- fruitr::read_locations(file, id = "ID", xy = c("LNG", "LAT"), proj4 = "+proj=longlat +ellps=WGS84")
+dt <- fruitr::read_locations(file, id = "ID", xy = c("LNG", "LAT"))
 ```
 
-`fruitr::read_locations()` supports most delimited text files and [OGR vector formats](http://www.gdal.org/ogr_formats.html).
+`fruitr::read_locations()` supports most delimited text files and all [OGR vector formats](http://www.gdal.org/ogr_formats.html) (provided you have the package [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html) installed).
 
 To get oriented, inspect the structure of the data:
 
@@ -23,7 +32,7 @@ And inspect the values of a particular field:
 sort(unique(dt[["FIELD"]]))
 ```
 
-### Prepare type names
+## Prepare type names
 
 Prepare any available scientific and common names for matching to Falling Fruit types:
 
@@ -49,7 +58,7 @@ unique(cbind(dt[["SCIENTIFIC_NAME"]], matched_scientific_names))
 
 If you have unexpected results, report the issue, edit the function and make a pull request, or build a custom solution starting from `fruitr::clean_strings()`.
 
-### Match names to Falling Fruit types
+## Match names to Falling Fruit types
 
 Match names against Falling Fruit types by providing a list of named vectors, one for each locale. For example, if the names prepared above were scientific names (with connecting terms and cultivars removed: `"scientific"`) and English common names (`"en"`):
 
@@ -83,7 +92,7 @@ Where the matched Falling Fruit types are displayed using the following conventi
 
 `<id>: <Canonical english name> [<Canonical scientific name>] {locale: name}`
 
-### Edit type assignments
+## Edit type assignments
 
 Assign groupings to Falling Fruit type(s) by entering them into the `types` column, as a comma-delimited list, following the format above (e.g. `114`, `114: Apple [Malus]`). If the type does not already exist (e.g. `New common [New scientific]`), a new type will be created on import. Tag a grouping as unverified by entering `x` into the `unverified` column. You can record new names by appending them using the format `{locale: name}` (e.g. `14: Apple [Malus pumila] {scientific: Malus paradisiaca, en: Paradise apple, Common apple}`), although this is currently unused.
 
@@ -115,7 +124,7 @@ write.csv(match_table, match_file, row.names = FALSE, na = "")
 match_table <- data.table::fread(match_file, stringsAsFactors = FALSE, na.strings = "")
 ```
 
-### Apply type assignments
+## Apply type assignments
 
 Once the match table is complete, apply the type assignments to the original data:
 
@@ -125,7 +134,7 @@ dt <- fruitr::apply_match_table(dt, match_table, drop = FALSE, types = ff_types)
 
 `fruitr::apply_match_table()` will first check the type assignments against the Falling Fruit database, then apply them if no errors are found.
 
-### Format optional fields
+## Format optional fields
 
 #### `address`
 
@@ -215,7 +224,7 @@ Full online path to a photo. A review is created with the photo added during imp
 dt[, photo.url := NA_character_]
 ```
 
-### Merge overlapping locations
+## Merge overlapping locations
 
 Since Falling Fruit does not support overlapping locations, these need to be merged together before import with `fruitr::merge_overlapping_locations()`:
 
@@ -225,7 +234,7 @@ mdt <- fruitr::merge_overlapping_locations(dt)
 
 Additional arguments are passed to `fruitr::build_location_description()`, the function responsible for constructing the final description by appending notes from single or overlapping locations. In particular, `merge` (default: `FALSE`) determines whether only the `notes` unique for all locations are preserved.
 
-### Write file for import
+## Write file for import
 
 Finally, format the data for import and write it to a file with `fruitr::write_locations_for_import`:
 
