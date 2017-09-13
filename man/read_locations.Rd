@@ -13,7 +13,7 @@ read_locations(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, ...)
 
 \item{xy}{(delimited text files only) Names of the columns with x and y coordinates (renamed to "lng", "lat" respectively).}
 
-\item{proj4}{Current coordinate reference system expressed as a proj.4 string (\url{http://proj4.org/parameters.html}) or EPSG integer code (\url{http://spatialreference.org/ref/epsg/}). If specified, takes precendence over any embedded value (spatial data). If \code{NULL}, the embedded value is used (spatial data) or an error is thrown if missing.}
+\item{proj4}{Current coordinate reference system expressed as a proj.4 string (\url{http://proj4.org/parameters.html}) or EPSG integer code (\url{http://spatialreference.org/ref/epsg/}). If specified, overrides any embedded value (spatial data). If \code{NULL}, the embedded value is used (spatial data) or WGS 84 (EPSG:4326) is assumed if missing.}
 
 \item{...}{Additional parameters passed to \code{\link[data.table]{fread}} (delimited text files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).}
 }
