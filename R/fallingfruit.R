@@ -28,9 +28,9 @@ get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "graft
   # Join synonyms to primary names
   dt[, scientific_names := lapply(Map(c, strsplit(scientific_name, "\\s*,\\s*"), strsplit(scientific_synonyms, "\\s*,\\s*")), na.remove)]
   if (locale == "en") {
-    dt[, common_names := lapply(Map(c, strsplit(name, "\\s*,\\s*"), strsplit(synonyms, "\\s*,\\s*")), na.remove)]
+    dt[, common_names := lapply(Map(c, strsplit(en_name, "\\s*,\\s*"), strsplit(en_synonyms, "\\s*,\\s*")), na.remove)]
   } else {
-    dt[, common_names := lapply(strsplit(name, "\\s*,\\s*"), na.remove)]
+    dt[, common_names := lapply(strsplit(en_name, "\\s*,\\s*"), na.remove)]
   }
   # Format names for matching
   is_cultivar <- sapply(lvapply(dt$scientific_names, grepl, pattern = "'[^']+'"), any)
