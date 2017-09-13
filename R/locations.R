@@ -3,7 +3,7 @@
 #' @param file The path of the file to be read.
 #' @param id Name of the column with a unique identifier (renamed to "id"). If \code{NULL}, locations are assigned an integer id corresponding to their order of appearance in the file.
 #' @param xy (delimited text files only) Names of the columns with x and y coordinates (renamed to "lng", "lat" respectively).
-#' @param proj4 Current coordinate reference system expressed as a proj.4 string (\url{http://proj4.org/parameters.html}) or EPSG integer code (\url{http://spatialreference.org/ref/epsg/}). If specified, takes precendence over any embedded value (spatial data). If \code{NULL}, the embedded value is used (spatial data) or an error is thrown if missing.
+#' @param proj4 Current coordinate reference system expressed as a proj.4 string (\url{http://proj4.org/parameters.html}) or EPSG integer code (\url{http://spatialreference.org/ref/epsg/}). If specified, overrides any embedded value (spatial data). If \code{NULL}, the embedded value is used (spatial data) or WGS 84 (EPSG:4326) is assumed if missing.
 #' @param ... Additional parameters passed to \code{\link[data.table]{fread}} (delimited text files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).
 #' @export
 #' @family location import functions
@@ -11,7 +11,12 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
 
   # Prepare arguments
   file <- tools::file_path_as_absolute(file)
+  if (is.null(proj4)) {
+    proj4 <- "+init=epsg:4326"
+  }
   to_proj4 <- "+init=epsg:4326"
+  is_ogr <- try(rgdal::ogrListLayers(file), silent = TRUE) %>%
+    {class(.) != "try-error"}
 
   # Read kml
   read_kml <- function(file, ...) {
@@ -31,11 +36,11 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
       unlist() %>%
       stringr::str_extract_all(pattern = "([-0-9\\.]+)") %>%
       sapply(as.numeric) %>%
-      t() %>%
-      sp_transform(
-        from = if (is.null(proj4)) "+init=epsg:4326" else proj4,
-        to = to_proj4
-      )
+      t()
+    tryCatch(
+      coordinates %<>% sp_transform(from = proj4, to = to_proj4),
+      error = function (e) warning(paste0("Spatial transformation failed:\n", e))
+    )
     data.table::data.table(name, description, lng = coordinates[, 1], lat = coordinates[, 2], stringsAsFactors = FALSE)
   }
 
@@ -43,8 +48,13 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   read_ogr <- function(file, ...) {
     layers <- rgdal::ogrListLayers(file)
     read_layer <- function(layer, ...) {
-      shp <- rgdal::readOGR(file, layer, stringsAsFactors = FALSE, ...) %>%
-        sp_transform(from = proj4, to = to_proj4)
+      shp <- rgdal::readOGR(file, layer, stringsAsFactors = FALSE, ...)
+      if (!is.na(sp::proj4string(shp))) {
+        tryCatch(
+          shp %<>% sp_transform(from = proj4, to = to_proj4),
+          error = function (e) warning(paste0("Spatial transformation failed:\n", e))
+        )
+      }
       # FIXME: Only retains points
       if (methods::.hasSlot(shp, "coords")) {
         df <- shp@data
@@ -65,7 +75,7 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   read_dbf <- function(file, ...) {
     df <- foreign::read.dbf(file, as.is = TRUE, ...)
     tryCatch(
-      df <- sp_transform(df, from = proj4, to = to_proj4, cols = xy),
+      df %<>% sp_transform(from = proj4, to = to_proj4, cols = xy),
       error = function (e) warning(paste0("Spatial transformation failed:\n", e))
     )
     df %>%
@@ -76,7 +86,7 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   read_delim <- function(file, ...) {
     df <- data.table::fread(file, stringsAsFactors = FALSE, data.table = FALSE, ...)
     tryCatch(
-      df <- sp_transform(df, from = proj4, to = to_proj4, cols = xy),
+      df %<>% sp_transform(from = proj4, to = to_proj4, cols = xy),
       error = function (e) warning(paste0("Spatial transformation failed:\n", e))
     )
     df %>%
@@ -84,8 +94,6 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   }
 
   # Read file
-  is_ogr <- try(rgdal::ogrListLayers(file), silent = TRUE) %>%
-    {class(.) != "try-error"}
   dt <- switch(
     tolower(tools::file_ext(file)),
     dbf = read_dbf(file, ...),
