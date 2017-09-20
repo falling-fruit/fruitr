@@ -24,7 +24,7 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
     # FIXME: Only retains points
     placemarks <- xml %>%
       xml2::xml_find_all(xpath = "//*[local-name() = 'Placemark'][*[local-name() = 'Point']]") %>%
-      sapply(xml2::as_list)
+      lapply(xml2::as_list)
     name <- placemarks %>%
       sapply(function(p) if (is.null(p$name)) NA else p$name) %>%
       unlist()
@@ -124,7 +124,7 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   data.table::setkey(dt, id)
 
   # return
-  dt
+  dt[]
 }
 
 #' Match Names Against Falling Fruit Types
