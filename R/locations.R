@@ -121,6 +121,7 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   if (any(duplicated(dt$id))) {
     warning("ID field contains duplicates.")
   }
+  dt[, id := as.character(id)]
   data.table::setkey(dt, id)
 
   # return
@@ -264,7 +265,7 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
   dt.group_by <- paste("dt", group_by, sep = ".")
   dt_subset <- dt[, union(join_by, group_by), with = FALSE]
   data.table::setnames(dt_subset, group_by, dt.group_by)
-  merged <- merge(dt_subset, match_temp, by.x = join_by, by.y = "id", all = FALSE)
+  merged <- merge(dt_subset, match_temp, by.x = join_by, by.y = "id", all = TRUE)
 
   # Group by grouping columns
   match_table <- merged[, .(unverified = "", count = .N, id = paste(id, collapse = ",")), by = c(dt.group_by, "types", "fuzzy_matches", "exact_matches")][order(count, decreasing = TRUE)]
