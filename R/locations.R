@@ -268,7 +268,7 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
   merged <- merge(dt_subset, match_temp, by.x = join_by, by.y = "id", all = TRUE)
 
   # Group by grouping columns
-  match_table <- merged[, .(unverified = "", count = .N, id = paste(id, collapse = ",")), by = c(dt.group_by, "types", "fuzzy_matches", "exact_matches")][order(count, decreasing = TRUE)]
+  match_table <- merged[, .(unverified = "", season.start = "", season.stop = "", no.season = "", count = .N, id = paste(id, collapse = ",")), by = c(dt.group_by, "types", "fuzzy_matches", "exact_matches")][order(count, decreasing = TRUE)]
   if (!is.null(group_by)) {
     data.table::setorderv(match_table, paste("dt", group_by, sep = "."))
   }
@@ -278,7 +278,7 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
     if (!identical(names(match_table), names(saved_table)) || !identical(match_table$name, saved_table$name) || !identical(match_table$id, saved_table$id)) {
       stop("Saved table does not match structure of new results.")
     }
-    saved_fields <- c("types", "unverified")
+    saved_fields <- c("types", "unverified", "season.start", "season.stop", "no.season")
     for (field in saved_fields) {
       match_table[, field := ifelse(is.empty(saved_table[[field]]), match_table[[field]], saved_table[[field]]), with = FALSE]
     }
@@ -309,7 +309,8 @@ apply_match_table <- function(dt, match_table, drop = FALSE, types = get_ff_type
   # Assign types
   id_lists <- strsplit(match_table$id, split = "\\s*,\\s*")
   temp <- match_table[rep(1:.N, sapply(id_lists, length))][, id := unlist(id_lists)]
-  merged <- merge(dt, temp[, .(id, types)], by = "id")
+  FIELDS <- intersect(c("id", "types", "unverified", "season.start", "season.stop", "no.season"), names(temp))
+  merged <- merge(dt, temp[, FIELDS, with = FALSE], by = "id")
 
   # Drop unassigned rows
   if (drop) {
