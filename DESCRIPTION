@@ -5,7 +5,7 @@ Date: 2016-05-04
 Authors@R: person("Ethan", "Welty", email = "ethan@fallingfruit.org", role = c("aut", "cre"))
 Title: R functions for Falling Fruit
 Description: An R package evolving with the needs and desires of Falling Fruit.
-License: GPL-3
+License: GPL-3 + file LICENSE
 LazyData: TRUE
 URL: https://github.com/falling-fruit/fruitr
 BugReports: https://github.com/falling-fruit/fruitr/issues
