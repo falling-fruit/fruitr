@@ -4,10 +4,11 @@
 #' @param id Name of the column with a unique identifier (renamed to "id"). If \code{NULL}, locations are assigned an integer id corresponding to their order of appearance in the file.
 #' @param xy (delimited text files only) Names of the columns with x and y coordinates (renamed to "lng", "lat" respectively).
 #' @param proj4 Current coordinate reference system expressed as a proj.4 string (\url{http://proj4.org/parameters.html}) or EPSG integer code (\url{http://spatialreference.org/ref/epsg/}). If specified, overrides any embedded value (spatial data). If \code{NULL}, the embedded value is used (spatial data) or WGS 84 (EPSG:4326) is assumed if missing.
+#' @param format File format to read \code{file} as: "kml", "dbf", "delim" (delimited text), or "ogr" (OGR supported format). If \code{NULL}, the function attempts to guess the format.
 #' @param ... Additional parameters passed to \code{\link[data.table]{fread}} (delimited text files), \code{\link[rgdal]{readOGR}} (spatial data), or \code{\link[xml2]{read_xml}} (certain kml files).
 #' @export
 #' @family location import functions
-read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, ...) {
+read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, format = NULL, ...) {
 
   # Prepare arguments
   file <- tools::file_path_as_absolute(file)
@@ -51,7 +52,7 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
       shp <- rgdal::readOGR(file, layer, stringsAsFactors = FALSE, ...)
       if (!is.na(sp::proj4string(shp))) {
         tryCatch(
-          shp %<>% sp_transform(from = proj4, to = to_proj4),
+          shp %<>% sp_transform(from = shp@proj4string, to = to_proj4),
           error = function (e) warning(paste0("Spatial transformation failed:\n", e))
         )
       }
@@ -94,16 +95,25 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   }
 
   # Read file
-  dt <- switch(
-    tolower(tools::file_ext(file)),
-    dbf = read_dbf(file, ...),
-    kml = read_kml(file, ...),
-    if (is_ogr) {
-      read_ogr(file, ...)
-    } else {
-      read_delim(file, ...)
-    }
-  )
+  if (is.null(format)) {
+    dt <- switch(
+      tolower(tools::file_ext(file)),
+      dbf = read_dbf(file, ...),
+      kml = read_kml(file, ...),
+      if (is_ogr) {
+        read_ogr(file, ...)
+      } else {
+        read_delim(file, ...)
+      })
+  } else {
+    dt <- switch(
+      tolower(format),
+      dbf = read_dbf(file, ...),
+      kml = read_kml(file, ...),
+      ogr = read_ogr(file, ...),
+      delim = read_delim(file, ...)
+    )
+  }
 
   # Standardize coordinate fields
   if (all(!is.empty(xy), xy %in% names(dt))) {
