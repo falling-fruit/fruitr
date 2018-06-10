@@ -16,8 +16,11 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
     proj4 <- "+init=epsg:4326"
   }
   to_proj4 <- "+init=epsg:4326"
-  is_ogr <- try(rgdal::ogrListLayers(file), silent = TRUE) %>%
+  has_layers <- suppressWarnings(try(rgdal::ogrListLayers(file), silent = TRUE)) %>%
     {class(.) != "try-error"}
+  has_features <- suppressWarnings(try(rgdal::ogrInfo(file)$have_features, silent = TRUE)) %>%
+    {class(.) != "try-error" && .}
+  is_ogr <- has_layers && has_features
 
   # Read kml
   read_kml <- function(file, ...) {
