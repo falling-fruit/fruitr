@@ -16,11 +16,13 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
     proj4 <- "+init=epsg:4326"
   }
   to_proj4 <- "+init=epsg:4326"
-  has_layers <- suppressWarnings(try(rgdal::ogrListLayers(file), silent = TRUE)) %>%
+  if (is.null(format)) {
+    has_layers <- suppressWarnings(try(rgdal::ogrListLayers(file), silent = TRUE)) %>%
     {class(.) != "try-error"}
-  has_features <- suppressWarnings(try(rgdal::ogrInfo(file)$have_features, silent = TRUE)) %>%
+    has_features <- suppressWarnings(try(rgdal::ogrInfo(file)$have_features, silent = TRUE)) %>%
     {class(.) != "try-error" && .}
-  is_ogr <- has_layers && has_features
+    is_ogr <- has_layers && has_features
+  }
 
   # Read kml
   read_kml <- function(file, ...) {
@@ -99,24 +101,23 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
 
   # Read file
   if (is.null(format)) {
-    dt <- switch(
+    format <- switch(
       tolower(tools::file_ext(file)),
-      dbf = read_dbf(file, ...),
-      kml = read_kml(file, ...),
+      dbf = "dbf",
+      kml = "kml",
       if (is_ogr) {
-        read_ogr(file, ...)
+        "ogr"
       } else {
-        read_delim(file, ...)
+        "delim"
       })
-  } else {
-    dt <- switch(
-      tolower(format),
-      dbf = read_dbf(file, ...),
-      kml = read_kml(file, ...),
-      ogr = read_ogr(file, ...),
-      delim = read_delim(file, ...)
-    )
   }
+  dt <- switch(
+    tolower(format),
+    dbf = read_dbf(file, ...),
+    kml = read_kml(file, ...),
+    ogr = read_ogr(file, ...),
+    delim = read_delim(file, ...)
+  )
 
   # Standardize coordinate fields
   if (all(!is.empty(xy), xy %in% names(dt))) {
