@@ -18,9 +18,9 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
   to_proj4 <- "+init=epsg:4326"
   if (is.null(format)) {
     has_layers <- suppressWarnings(try(rgdal::ogrListLayers(file), silent = TRUE)) %>%
-    {class(.) != "try-error"}
+      {class(.) != "try-error"}
     has_features <- suppressWarnings(try(rgdal::ogrInfo(file)$have_features, silent = TRUE)) %>%
-    {class(.) != "try-error" && .}
+      {class(.) != "try-error" && .}
     is_ogr <- has_layers && has_features
   }
 
@@ -128,7 +128,7 @@ read_locations <- function(file, id = NULL, xy = c("lng", "lat"), proj4 = NULL, 
 
   # Standardize id field
   if (all(!is.empty(id), id %in% names(dt))) {
-    data.table::setnames(id, "id")
+    data.table::setnames(dt, id, "id")
   } else {
     dt[, id := 1:nrow(dt)]
   }
