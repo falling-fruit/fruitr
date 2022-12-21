@@ -2,6 +2,7 @@
 
 #' Get Falling Fruit (FF) Types
 #'
+#' @param key API key.
 #' @param categories Categories of types to include.
 #' @param uncategorized Whether to include uncategorized types.
 #' @param pending Whether to include pending types.
@@ -12,10 +13,10 @@
 #' @family Falling Fruit functions
 #' @examples
 #' ff_types <- get_ff_types()
-get_ff_types <- function(categories = c("forager", "freegan", "honeybee", "grafter"), uncategorized = TRUE, pending = TRUE, urls = TRUE, locale = "en") {
+get_ff_types <- function(key, categories = c("forager", "freegan", "honeybee", "grafter"), uncategorized = TRUE, pending = TRUE, urls = TRUE, locale = "en") {
   # Retrieve data from API
   url <- "https://fallingfruit.org/api/0.2/types.json"
-  query <- list(api_key = "***REMOVED***", c = paste(intersect(Categories, categories), collapse = ","), uncategorized = ifelse(uncategorized, 1, 0), pending = ifelse(pending, 1, 0), locale = locale, urls = ifelse(urls, 1, 0))
+  query <- list(api_key = key, c = paste(intersect(Categories, categories), collapse = ","), uncategorized = ifelse(uncategorized, 1, 0), pending = ifelse(pending, 1, 0), locale = locale, urls = ifelse(urls, 1, 0))
   response <- httr::GET(url, query = query)
   # Convert JSON to data.table
   df <- jsonlite::fromJSON(rawToChar(response$content))

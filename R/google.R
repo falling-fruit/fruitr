@@ -3,6 +3,8 @@
 #' Free up to 100/day. Maximum 10,000/day. Rate limit 1/s.
 #'
 #' @param string (character) Search string.
+#' @param key (character) API key.
+#' @param cx (character) Search engine ID.
 #' @param language (character) Language code to search in.
 #' @param pause (boolean) Whether to pause 1 s.
 #' @export
@@ -11,12 +13,12 @@
 #' @examples
 #' count_google_cs_results("'Malus domestica'+'Apfel'", "en")
 #' count_google_cs_results("'Malus domestica'+'Apfel'", "de")
-count_google_cs_results = function(string, language = NULL, pause = FALSE) {
+count_google_cs_results = function(string, key, language = NULL, pause = FALSE) {
   if (pause) {
     Sys.sleep(1.1)
   }
   url <- "https://www.googleapis.com/customsearch/v1"
-  query <- list(key = "***REMOVED***", cx = "***REMOVED***", q = string)
+  query <- list(key = key, cx = cx, q = string)
   if (!is.empty(language)) {
     if (!(language %in% Google_cs_languages)) {
       warning("Ignored unsupported language (", language, ").")
