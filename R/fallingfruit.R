@@ -3,20 +3,15 @@
 #' Get Falling Fruit (FF) Types
 #'
 #' @param key API key.
-#' @param categories Categories of types to include.
-#' @param uncategorized Whether to include uncategorized types.
-#' @param pending Whether to include pending types.
-#' @param urls Whether to include URLs.
-#' @param locale Locale of the vectorized \code{common_names} field (all available name fields are returned).
 #' @return A \code{\link{data.table}} of Falling Fruit types.
 #' @export
 #' @family Falling Fruit functions
 #' @examples
 #' ff_types <- get_ff_types()
-get_ff_types <- function(key, categories = c("forager", "freegan", "honeybee", "grafter"), uncategorized = TRUE, pending = TRUE, urls = TRUE, locale = "en") {
+get_ff_types <- function(key) {
   # Retrieve data from API
-  url <- "https://fallingfruit.org/api/0.2/types.json"
-  query <- list(api_key = key, c = paste(intersect(Categories, categories), collapse = ","), uncategorized = ifelse(uncategorized, 1, 0), pending = ifelse(pending, 1, 0), locale = locale, urls = ifelse(urls, 1, 0))
+  url <- "https://fallingfruit.org/api/0.3/types"
+  query <- list(api_key = key)
   response <- httr::GET(url, query = query)
   # Convert JSON to data.table
   df <- jsonlite::fromJSON(rawToChar(response$content))
@@ -26,13 +21,6 @@ get_ff_types <- function(key, categories = c("forager", "freegan", "honeybee", "
   # Prepare numeric and named taxonomic ranks
   dt[, taxonomic_rank_order := taxonomic_rank]
   dt[, taxonomic_rank := Taxonomic_ranks[taxonomic_rank_order + 1]]
-  # Join synonyms to primary names
-  dt[, scientific_names := lapply(Map(c, strsplit(scientific_name, "\\s*,\\s*"), strsplit(scientific_synonyms, "\\s*,\\s*")), na.remove)]
-  if (locale == "en") {
-    dt[, common_names := lapply(Map(c, strsplit(en_name, "\\s*,\\s*"), strsplit(en_synonyms, "\\s*,\\s*")), na.remove)]
-  } else {
-    dt[, common_names := lapply(strsplit(en_name, "\\s*,\\s*"), na.remove)]
-  }
   # Format names for matching
   is_cultivar <- sapply(lvapply(dt$scientific_names, grepl, pattern = "'[^']+'"), any)
   dt[!is_cultivar, matched_scientific_names := lvapply(scientific_names, format_scientific_names, connecting_terms = FALSE, cultivars = FALSE)]
@@ -107,10 +95,10 @@ parse_type_strings <- function(type_strings) {
 #' ff_types <- get_ff_types()
 #' match_type_strings("Apple", ff_types)
 #' match_type_strings(c("Apple [Malus domestica]", "Pear [Pyrus]"), ff_types)
-match_type_strings <- function(type_strings, types = get_ff_types(pending = FALSE, urls = FALSE)) {
+match_type_strings <- function(type_strings, types = get_ff_types()) {
   ts <- parse_type_strings(type_strings)
   matches <- lapply(ts, function(t) {
-    types[(is.na(t$id) | id == t$id) & (is.na(t$name) | name == t$name) & (is.na(t$scientific_name) | scientific_name == t$scientific_name), id]
+    types[(is.na(t$id) | id == t$id) & (is.na(t$name) | t$name == Map("[", common_names.en, 1)) & (is.na(t$scientific_name) | t$scientific_name == Map("[", scientific_names, 1)), id]
   })
   return(matches)
 }
@@ -133,7 +121,7 @@ match_type_strings <- function(type_strings, types = get_ff_types(pending = FALS
 #' normalize_type_strings(c("", " ,", NA), ff_types)
 #' normalize_type_strings(c("14: Apple, 14: Apple"), ff_types)
 #' normalize_type_strings("Hello World", ff_types)
-normalize_type_strings <- function(type_strings, types = get_ff_types(pending = FALSE, urls = FALSE)) {
+normalize_type_strings <- function(type_strings, types = get_ff_types()) {
   # Strip notes
   type_strings <- gsub("\\s*\\{.*\\}", "", type_strings)
   # Verify type strings
@@ -165,7 +153,15 @@ normalize_type_strings <- function(type_strings, types = get_ff_types(pending = 
   ids <- unlist(matches[n_matches == 1])
   if (length(ids) > 0) {
     old_strings <- paste0("(^|,\\s*)", quotemeta(matched_type_strings[n_matches == 1]), "\\s*(,|$)")
-    new_strings <- paste0("\\1", build_type_strings(ids, types[.(ids), name], types[.(ids), scientific_name]), "\\2")
+    new_strings <- paste0(
+      "\\1",
+      build_type_strings(
+        ids,
+        unlist(types[.(ids), Map("[", common_names.en, 1)]),
+        unlist(types[.(ids), Map("[", scientific_names, 1)])
+      ),
+      "\\2"
+    )
     names(new_strings) <- old_strings
     return(stringr::str_replace_all(type_strings, new_strings))
   } else {

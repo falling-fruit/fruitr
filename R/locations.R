@@ -157,7 +157,7 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
 
   # Check names
   names <- names[!is.empty(names)]
-  supported_locales <- c("cultivar", "en", gsub("_name$", "", names(types)[grepl("^[a-z_]+_name$", names(types))]))
+  supported_locales <- c("scientific", "cultivar", gsub("common_names\\.", "", names(types)[grepl("^common_names\\.[a-z_]+$", names(types))]))
   names <- names[intersect(names(names), supported_locales)]
   n_rows <- unique(sapply(names, length))
   if (length(n_rows) != 1 | n_rows == 0) {
@@ -182,8 +182,7 @@ match_names_to_ff_types <- function(names, ids = NULL, simplify = c("first", "la
     types_name_field <- switch(locale,
       scientific = "matched_scientific_names",
       cultivar = "matched_cultivars",
-      en = "common_names",
-      paste(locale, "name", sep = "_")
+      paste("common_names", locale, sep = ".")
     )
     type_names <- types[!is.empty(types[[types_name_field]])][, .(name = unlist(.SD)), by = id, .SDcols = types_name_field]
 
@@ -254,14 +253,14 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
   # Initial match table
   # id | types (exact_strings[1] if length = 1) | fuzzy_strings | exact_matches | ...
   type_ids <- unique(unlist(matches[, .(exact, fuzzy)]))
-  if (is.empty(locales)) {
+  if (is.null(locales)) {
     type_strings <- sapply(type_ids, function(type_id) {
-      types[id == type_id, build_type_strings(id, name, scientific_name)]
+      types[id == type_id, build_type_strings(id, first(common_names.en)[1], first(scientific_names)[1])]
     })
   } else {
-    name_fields <- ifelse(locales == "en", "name", paste(locales, "name", sep = "_"))
+    name_fields <- paste("common_names", locales, sep = ".")
     type_strings <- sapply(type_ids, function(type_id) {
-      types[id == type_id, build_type_strings(id, name, scientific_name, paste(mapply(paste, locales, .SD, sep = ": "), collapse = ", ")), .SDcols = name_fields]
+      types[id == type_id, build_type_strings(id, first(common_names.en)[1], first(scientific_names)[1], paste(mapply(paste, locales, .SD, sep = ": "), collapse = ", ")), .SDcols = name_fields]
     })
   }
   selected_strings <- sapply(matches$exact, function(ids) {
@@ -305,7 +304,7 @@ build_match_table <- function(dt, matches, join_by = "id", group_by = NULL, type
 #' Apply Match Table to Locations
 #'
 #' @param dt Locations data.
-#' @param match_table Type assignments, as returned by \code{\link{get_ff_types}}.
+#' @param match_table Type assignments, as returned by \code{\link{match_names_to_ff_types}}.
 #' @param drop Whether to drop unassigned rows in \code{dt}.
 #' @param types Falling Fruit types, as returned by \code{\link{get_ff_types}}.
 #' @export
