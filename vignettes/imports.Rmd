@@ -2,7 +2,9 @@
 title: "Imports"
 author: "Ethan Welty"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+  md_document:
+    variant: markdown_github
 vignette: >
   %\VignetteIndexEntry{Imports}
   %\VignetteEngine{knitr::rmarkdown}
@@ -65,7 +67,7 @@ If you have unexpected results, report the issue, edit the function and make a p
 Match names against Falling Fruit types by providing a list of named vectors, one for each locale. For example, if the names prepared above were scientific names (with connecting terms and cultivars removed: `"scientific"`) and English common names (`"en"`):
 
 ```R
-ff_types <- fruitr::get_ff_types(pending = FALSE)
+ff_types <- fruitr::get_ff_types(key=API_KEY)[(!pending)]
 locales <- list("scientific" = matched_scientific_names, "en" = matched_common_names)
 matches <- fruitr::match_names_to_ff_types(locales, ids = dt$id, simplify = "first", max_distance = 3, n_nearest = 2, types = ff_types)
 ```

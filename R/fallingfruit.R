@@ -7,7 +7,9 @@
 #' @export
 #' @family Falling Fruit functions
 #' @examples
-#' ff_types <- get_ff_types()
+#' \dontrun{
+#' ff_types <- get_ff_types(key=API_KEY)
+#' }
 get_ff_types <- function(key) {
   # Retrieve data from API
   url <- "https://fallingfruit.org/api/0.3/types"
