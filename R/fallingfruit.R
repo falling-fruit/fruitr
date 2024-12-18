@@ -236,7 +236,7 @@ build_location_description <- function(type_strings, notes = NULL, merge = FALSE
 #'
 #' @param type_strings Character vector of type strings.
 #' @param notes List of character vectors, each of the same length.
-#' @param note_sep Character string to seperate each element in \code{notes}.
+#' @param note_sep Character string to seperate each element in \code{notes} and notes from the type string.
 #' @param frequency Whether to display frequency before \code{type_strings}.
 #' @param frequency_in String of two characters in which to display the frequencies.
 #' @param ... Arguments passed to other methods (unused).
@@ -254,7 +254,7 @@ build_location_description <- function(type_strings, notes = NULL, merge = FALSE
 #' notes <- list(c("Planted 1999", NA), c(NA, "Height 20 m"), c(NA, NA))
 #' build_location_descriptions(type_strings, notes)
 #' build_location_descriptions(type_strings, notes, frequency = FALSE)
-build_location_descriptions <- function(type_strings, notes = NULL, note_sep = ". ", frequency = TRUE, frequency_in = "[]", ...) {
+build_location_descriptions <- function(type_strings, notes = NULL, note_sep = " · ", frequency = TRUE, frequency_in = "[]", ...) {
   descriptions <- type_strings
   if (frequency) {
     descriptions <- paste0(substr(frequency_in, 1, 1), 1, "x", substr(frequency_in, 2, 2), " ", descriptions)
@@ -267,7 +267,7 @@ build_location_descriptions <- function(type_strings, notes = NULL, note_sep = "
       paste(stats::na.omit(note), collapse = note_sep)
     })
     has_note <- note_strings != ""
-    descriptions[has_note] <- paste0(paste(descriptions[has_note], note_strings[has_note], sep = ". "), gsub("\\s*$", "", note_sep))
+    descriptions[has_note] <- paste(descriptions[has_note], note_strings[has_note], sep = note_sep)
   }
   return(descriptions)
 }
