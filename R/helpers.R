@@ -294,6 +294,8 @@ format_addresses <- function(x) {
 #' format_scientific_names("Malus x domestica var. gala", connecting_terms = TRUE)
 #' format_scientific_names("Malus x domestica var. gala", connecting_terms = FALSE)
 #' format_scientific_names("Malus pumila 'gala'", cultivars = TRUE)
+#' format_scientific_names("Malus pumila 'Reine Claude'", cultivars = TRUE)
+#' format_scientific_names(c("Malus", "Malus 'gala'"), cultivars = TRUE)
 #' format_scientific_names("Malus pumila 'gala'", cultivars = FALSE)
 #' format_scientific_names("Prunus subg amygdalus")
 #' format_scientific_names("Malus x", connecting_terms = FALSE)
@@ -315,7 +317,13 @@ format_scientific_names <- function(x, connecting_terms = TRUE, cultivars = TRUE
   x <- gsub("\\s*(?<!^)(?<!(^[A-Z]{1}[a-z] ))(?<! subg. )([A-Z]{1}[a-z]+\\.*|&)(\\s*|$)+$", "", x, perl = TRUE) # clear author citations (trailing capitalized words, skipping first)
   # Case
   x <- capitalize_words(x, strict = TRUE, first = TRUE) # force lowercase, then capitalize first word
-  x <- gsub("(')([a-z])([a-z])", "\\1\\U\\2\\L\\3", x, perl = TRUE)  # capitalize letter after ' if before letter
+  # Extract and uppercase cultivar
+  cultivar <- x %>%
+    stringr::str_match(" '(.+)'$") %>%
+    .[, 2] %>%
+    capitalize_words()
+  x[!is.na(cultivar)] %<>% stringr::str_replace(" '.+'$", paste0(" '", cultivar[!is.na(cultivar)], "'"))
+  x <- gsub(" '([a-z])(^[a-z])'$", "\\1\\U\\2\\L\\3", x, perl = TRUE)  # capitalize letter after ' if before letter
   x <- gsub("( subg. )([a-z])([a-z])", "\\1\\U\\2\\L\\3", x, perl = TRUE)  # capitalize letter after subg. if before letter
   # Removals
   if (!connecting_terms) {
