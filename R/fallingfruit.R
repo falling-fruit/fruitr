@@ -155,13 +155,14 @@ normalize_type_strings <- function(type_strings, types = get_ff_types()) {
   ids <- unlist(matches[n_matches == 1])
   if (length(ids) > 0) {
     old_strings <- paste0("(^|,\\s*)", quotemeta(matched_type_strings[n_matches == 1]), "\\s*(,|$)")
+    common_names <- Map("[", types[.(ids)]$common_names.en, 1)
+    common_names[lengths(common_names) == 0] <- NA
+    common_names <- common_names %>% unlist()
+    scientific_names <- Map("[", types[.(ids)]$scientific_names, 1)
+    scientific_names[lengths(scientific_names) == 0] <- NA
+    scientific_names <- scientific_names %>% unlist()
     new_strings <- paste0(
-      "\\1",
-      build_type_strings(
-        ids,
-        unlist(types[.(ids), Map("[", common_names.en, 1)]),
-        unlist(types[.(ids), Map("[", scientific_names, 1)])
-      ),
+      "\\1", build_type_strings(ids, common_names, scientific_names),
       "\\2"
     )
     names(new_strings) <- old_strings
