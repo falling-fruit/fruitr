@@ -1,6 +1,6 @@
 #' Query Sources about Falling Fruit (FF) Type
 #'
-#' TODO: Seach by scientific synonyms if no results found.
+#' TODO: Search by scientific synonyms if no results found.
 #'
 #' @param ff_type (named list) Row of \code{\link{get_ff_types}}.
 #' @param sources (character vector) Sources to query.

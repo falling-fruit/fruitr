@@ -180,9 +180,9 @@ normalize_type_strings <- function(type_strings, types = get_ff_types()) {
 #' @param type_strings Character vector interpreted literally (comma-delimited lists are not split).
 #' @param notes List of character vectors, each of the same length.
 #' @param merge Whether to merge types, discarding any notes that are not equal for all types.
-#' @param type_sep Character string to seperate each element in \code{type_strings} when \code{merge = TRUE}.
-#' @param note_sep Character string to seperate each retained element in \code{notes}.
-#' @param group_sep Character string to seperate each grouping when \code{merge = FALSE}.
+#' @param type_sep Character string to separate each element in \code{type_strings} when \code{merge = TRUE}.
+#' @param note_sep Character string to separate each retained element in \code{notes}.
+#' @param group_sep Character string to separate each grouping when \code{merge = FALSE}.
 #' @param frequency Whether to display frequency before each element in \code{type_strings}.
 #' @param frequency_in String of two characters in which to display the frequencies.
 #' @return Character string of the summarized and concatenated values.
@@ -236,7 +236,7 @@ build_location_description <- function(type_strings, notes = NULL, merge = FALSE
 #'
 #' @param type_strings Character vector of type strings.
 #' @param notes List of character vectors, each of the same length.
-#' @param note_sep Character string to seperate each element in \code{notes} and notes from the type string.
+#' @param note_sep Character string to separate each element in \code{notes} and notes from the type string.
 #' @param frequency Whether to display frequency before \code{type_strings}.
 #' @param frequency_in String of two characters in which to display the frequencies.
 #' @param ... Arguments passed to other methods (unused).
